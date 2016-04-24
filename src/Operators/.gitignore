@@ -1,0 +1,5 @@
+# Excludes Operators
+*/*
+
+# Include CMake files
+!./CMakeLists.txt
