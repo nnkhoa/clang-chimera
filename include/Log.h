@@ -13,6 +13,7 @@
 
 namespace chimera {
 namespace log {
+  // FIXME Delete this intermediate class?
 // Typedefs
 using VerboseLevel = el::base::type::VerboseLevel;
 /// @brief ChimeraLogger Class, provides all functions for the logging

@@ -23,7 +23,7 @@
 
 using namespace chimera;
 
-/// \addtogroup CL_OPTIONS Command Line Options
+/// \addtogroup CHIMERA_CHIMERATOOL_CL_OPTIONS Command Line Options
 /// \{
 // Overview
 const char *overview =
@@ -91,8 +91,7 @@ enum PreprocessLevel {
     ::llvm::cl::ValueRequired, ::llvm::cl::value_desc("file"),
     ::llvm::cl::cat(catChimera), ::llvm::cl::init(""));
 ::llvm::cl::opt<::std::string> optOutputDir(
-    "o",
-    ::llvm::cl::desc("The output directory, default: ./chimera_output/"),
+    "o", ::llvm::cl::desc("The output directory, default: ./chimera_output/"),
     ::llvm::cl::ValueRequired, ::llvm::cl::value_desc("dir-path"),
     ::llvm::cl::cat(catChimera), ::llvm::cl::init("./chimera_output"));
 ::llvm::cl::opt<::std::string> optCompilationDatabaseDir(
@@ -109,6 +108,12 @@ enum PreprocessLevel {
                      "only other options will be accepted."),
     ::llvm::cl::ValueRequired, ::llvm::cl::value_desc("test-dir"),
     ::llvm::cl::cat(catChimera), ::llvm::cl::init(""));
+
+::llvm::cl::opt<bool>
+    optShowOperators("show-op",
+                     ::llvm::cl::desc("Show the supported Mutation Operators"),
+                     ::llvm::cl::ValueDisallowed, ::llvm::cl::cat(catChimera),
+                     ::llvm::cl::init(false));
 
 // Utility functions
 bool optIsOccured(const ::std::string &optString, int argc, const char **argv) {
@@ -131,7 +136,7 @@ bool optIsOccured(const ::std::string &optString, int argc, const char **argv) {
 //                           mutator_array_ref_stuck_data);
 // CHIMERA_MUTATOR_MATCH_TEST(::chimera::MutatorIntegerRefStuckData,
 //                           mutator_int_ref_stuck_data);
-//CHIMERA_MUTATOR_MATCH_TEST(::iideaa::FLAPFloatOperationMutator, prova);
+// CHIMERA_MUTATOR_MATCH_TEST(::iideaa::FLAPFloatOperationMutator, prova);
 /// \}
 
 bool chimera::ChimeraTool::registerMutationOperator(
@@ -166,6 +171,15 @@ int chimera::ChimeraTool::run(int argc, const char **argv) {
     const char *help[2] = {argv[0], "-help"};
     ::clang::tooling::CommonOptionsParser helpOption(argc, help, catChimera,
                                                      overview);
+  }
+  
+  // Arguments that ends the execution
+  if (optIsOccured(optShowOperators.ArgStr, argc, argv)){
+    ::llvm::outs() << "Supported Operators:\n";
+    for (const auto& op : this->getRegisteredMutOperators()){
+      ::llvm::outs() << " * " << op.getValue()->getIdentifier() << "\n";
+    }
+    return 0;
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -400,8 +414,7 @@ int chimera::ChimeraTool::run(int argc, const char **argv) {
                                 outputPath + chimera::fs::pathSep + "mutants");
 
     // Loop on registered operators
-    const chimera::MutationOperatorPtrMap &map =
-        this->registeredOperatorMap;
+    const chimera::MutationOperatorPtrMap &map = this->registeredOperatorMap;
     for (auto it = map.begin(); it != map.end(); ++it) {
       t.loadOperator(it->second.get());
     }
