@@ -23,6 +23,7 @@ int main(int argc, const char **argv) {
   //  chimeraTool.registerMutationOperator(::chimera::getGlobalStuckData());
 
   chimeraTool.registerMutationOperator(::iideaa::getFLAPOperator());
+  chimeraTool.registerMutationOperator(::iideaa::getFLAPVivadoOperator());
 
   return chimeraTool.run(argc, argv);
 }

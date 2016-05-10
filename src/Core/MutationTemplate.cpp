@@ -44,9 +44,11 @@ using namespace chimera::mutator;
 using namespace chimera::m_operator;
 using namespace chimera::log;
 
-#define DEBUG_TYPE "MUTATION_TEMPLATE"
+#define DEBUG_TYPE "mutation_template"
 
 static mutant::IdType mutantCounterInitial = 1;
+
+// FIXME: When a function name is not found -> LLVM IO ERROR.
 
 ///////////////////////////////////////////////////////////////////////////////
 /// @brief    This class manages the creation and deletion of rewriter objects
@@ -648,7 +650,7 @@ int chimera::MutationTemplate::run(clang::ast_matchers::MatchFinder &finder) {
   int retval = 1; // Default error
   if (isGenerateMutants() || isGenerateMutantsReport()) {
     ChimeraLogger::verboseAndIncr("[ RUN  ] Internal tool");
-
+    
     // Create output folder
     ChimeraLogger::verbose(
         "Creating output folder " +
@@ -657,7 +659,7 @@ int chimera::MutationTemplate::run(clang::ast_matchers::MatchFinder &finder) {
       ChimeraLogger::fatal("Couldn't create output folder");
       return 1;
     }
-
+    
     // Open report stream
     if (this->openReportStream("report.csv")) {
       // retval = this->tool.run(newFrontendActionFactory(&finder).get());
