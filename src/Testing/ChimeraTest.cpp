@@ -25,21 +25,19 @@
 ///        Google C++ Test Framework
 //===----------------------------------------------------------------------===//
 
+#include "Core/Mutator.h"
 #include "Testing/ChimeraTest.h"
 
 #include "Log.h"
 #include "Utils.h"
-#include "clang/AST/AST.h"
 #include "clang/Tooling/Tooling.h"
 #include "clang/Frontend/FrontendActions.h"
-#include "clang/ASTMatchers/ASTMatchers.h"
+#include "clang/ASTMatchers/ASTMatchFinder.h"
 #include "llvm/Support/FileSystem.h"
 
 #include "lib/csv.h"
 
 #include <string>
-#include <sstream>
-#include <fstream>
 #include <iostream>
 
 //#include <boost/filesystem.hpp>

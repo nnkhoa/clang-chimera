@@ -27,12 +27,11 @@
 
 #include "Core/MutationTemplate.h"
 #include "Tooling/FrontendActions.h"
+#include "Tooling/CompilationDatabaseUtils.h"
 
 #include "clang/Rewrite/Core/Rewriter.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/FileSystem.h"
-#include "llvm/Support/raw_os_ostream.h"
-#include "llvm/Support/Path.h"
 
 #include <algorithm>
 

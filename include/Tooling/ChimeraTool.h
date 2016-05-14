@@ -28,10 +28,11 @@
 
 #include "Core/MutationOperator.h"
 
-#include "clang/Tooling/CompilationDatabase.h"
 #include "llvm/ADT/StringMap.h"
 
-#include <memory>
+// Forward declarations
+namespace clang { namespace tooling { class CompilationDatabase; } }
+
 
 namespace chimera
 {

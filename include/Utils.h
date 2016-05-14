@@ -27,7 +27,6 @@
 #define SRC_INCLUDE_UTILS_H_
 
 #include "llvm/ADT/Twine.h"
-#include "llvm/Support/raw_os_ostream.h"
 
 #include <map>
 #include <vector>

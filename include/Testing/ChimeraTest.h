@@ -1,7 +1,7 @@
 //===- ChimeraTest.h --------------------------------------------*- C++ -*-===//
 //
 //  Copyright (C) 2015, 2016  Federico Iannucci (fed.iannucci@gmail.com)
-// 
+//
 //  This file is part of Clang-Chimera.
 //
 //  Clang-Chimera is free software: you can redistribute it and/or modify
@@ -28,18 +28,28 @@
 #ifndef INCLUDE_TEST_CHIMERATEST_H_
 #define INCLUDE_TEST_CHIMERATEST_H_
 
-#include "Core/Mutator.h"
-
 #include "lib/gtest/gtest.h" ///< Include gtest.h to use Google Test Framework
 
-namespace chimera {
-namespace testing {
+#include <string>
+
+namespace chimera
+{
+namespace mutator
+{
+class Mutator;
+}
+}
+
+namespace chimera
+{
+namespace testing
+{
 
 /// @defgroup CHIMERA_TEST_TYPES Chimera Test Types
 /// \{
 struct TestingOptions {
-  TestingOptions() : verbose(false) {}
-  bool verbose : 1; // Enable verbose output
+    TestingOptions() : verbose ( false ) {}
+    bool verbose : 1; // Enable verbose output
 };
 /// \}
 
@@ -70,11 +80,12 @@ struct TestingOptions {
 ///           test_N_mutants.cpp files in which
 ///           the generated mutants are reported.
 /// @param Mutator to test
-void testMutatorMatch(chimera::mutator::Mutator *);
+void testMutatorMatch ( chimera::mutator::Mutator * );
 
-template <class MutatorClass> void testMutatorMatch() {
-  MutatorClass mutator;
-  testMutatorMatch(&mutator);
+template <class MutatorClass> void testMutatorMatch()
+{
+    MutatorClass mutator;
+    testMutatorMatch ( &mutator );
 }
 
 /// @brief Run all tests
@@ -82,8 +93,8 @@ template <class MutatorClass> void testMutatorMatch() {
 /// @param argv Like main's argv, to configure gtest
 /// @param The directory path that contains the tests
 /// @return Running result: 0 OK
-int runAllTest(int argc, const char **argv, const std::string &,
-               TestingOptions o = TestingOptions());
+int runAllTest ( int argc, const char **argv, const std::string &,
+                 TestingOptions o = TestingOptions() );
 
 } // End chimera::test namespace
 } // End chimera namespace

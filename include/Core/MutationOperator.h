@@ -29,6 +29,7 @@
 
 #include "Core/Mutator.h"
 
+#include <cassert>
 #include <memory>
 #include <string>
 #include <vector>
