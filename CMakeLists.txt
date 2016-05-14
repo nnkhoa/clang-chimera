@@ -6,12 +6,12 @@ set(CMAKE_CXX_STANDARD 11)
 set(CXX_STANDARD_REQUIRED ON)
 
 # Required packages
-# Require LLVM and Clang
+## Require LLVM and Clang
 find_package(LLVM 3.7.0 REQUIRED CONFIG)
-# Require Pthreads
+## Require Pthreads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-# Require ZLIB
+## Require ZLIB
 find_package(ZLIB REQUIRED)
 
 message(STATUS "Found ZLIB ${ZLIB_VERSION_STRING}")
@@ -25,8 +25,9 @@ include_directories(${LLVM_INCLUDE_DIRS})
 add_definitions(${LLVM_DEFINITIONS})
 
 # Find the libraries that correspond to the LLVM/Clang components
-# that we wish to use
+## Mapping components to libraries names
 llvm_map_components_to_libnames(llvm_libs support core aarch64 aarch64asmparser aarch64asmprinter aarch64codegen aarch64desc aarch64disassembler aarch64info aarch64utils all amdgpu amdgpuasmparser amdgpuasmprinter amdgpucodegen amdgpudesc amdgpuinfo amdgpuutils analysis arm armasmparser armasmprinter armcodegen armdesc armdisassembler arminfo asmparser asmprinter bitreader bitwriter bpf bpfasmprinter bpfcodegen bpfdesc bpfinfo codegen core cppbackend cppbackendcodegen cppbackendinfo debuginfodwarf debuginfopdb executionengine instcombine instrumentation interpreter ipa ipo irreader libdriver lineeditor linker lto mc mcdisassembler mcparser mirparser native nativecodegen nvptx nvptxasmprinter nvptxcodegen nvptxdesc nvptxinfo objcarcopts object option passes powerpc powerpcasmparser powerpcasmprinter powerpccodegen powerpcdesc powerpcdisassembler powerpcinfo profiledata runtimedyld scalaropts selectiondag support systemz systemzasmparser systemzasmprinter systemzcodegen systemzdesc systemzdisassembler systemzinfo tablegen target transformutils vectorize x86 x86asmparser x86asmprinter x86codegen x86desc x86disassembler x86info x86utils)
+## Clang libraries
 list(APPEND clang_libs
      clangTooling
      clangToolingCore
@@ -51,6 +52,7 @@ list(APPEND clang_libs
      clangSerialization 
      )
 
+# Put all toghether the required libraries
 list(APPEND required_libs ${clang_libs} ${llvm_libs})
 
 # Check on required libraries
@@ -95,12 +97,13 @@ add_executable(clang-chimera src/main.cpp)
 target_include_directories(clang-chimera
                            PRIVATE ${CMAKE_SOURCE_DIR}/include
                            )
+# Link libraries
 target_link_libraries(clang-chimera 
                       ${required_libs_paths}
+                      operators tooling testing utils
                       )
 # Relink to resolve circular dependencies
 target_link_libraries(clang-chimera 
-                      executable
                       ${required_libs_paths}
                       Threads::Threads
                       z

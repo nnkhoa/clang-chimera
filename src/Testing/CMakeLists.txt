@@ -7,3 +7,4 @@ target_include_directories(testing
                            PRIVATE ${CMAKE_SOURCE_DIR}/include
                            PRIVATE ${CMAKE_SOURCE_DIR}/include/lib
                            )
+target_link_libraries(testing core)
