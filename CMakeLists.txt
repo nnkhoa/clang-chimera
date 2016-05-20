@@ -78,7 +78,7 @@ list(APPEND required_libs ${clang_libs} ${llvm_libs})
 # - LLVM/Clang Static Libraries
 message(STATUS "Checking LLVM/Clang Static libraries: ${required_libs}")
 
-set(LLVM_LIBRARY_DIR "/usr/lib/" CACHE FILEPATH "Library search path for LLVM/Clang")
+set(LLVM_LIBRARY_DIR "/usr/lib/" CACHE PATH "Library search path for LLVM/Clang")
 message(STATUS "Search path: LLVM_LIBRARY_DIR = ${LLVM_LIBRARY_DIR}")
 
 set(required_libs_paths)
@@ -86,7 +86,7 @@ foreach (lib ${required_libs})
   find_library(required_lib_path ${lib} ${LLVM_LIBRARY_DIR})
   
   if (${required_lib_path} STREQUAL required_lib_path-NOTFOUND)
-    message(FATAL_ERROR "The library ${lib} was not found. Provide a LLVM_LIBRARY_DIR: -DLLVM_LIBRARY_DIR:FILEPATH=<library_path>.")
+    message(FATAL_ERROR "The library ${lib} was not found. Provide a LLVM_LIBRARY_DIR: -DLLVM_LIBRARY_DIR:PATH=<library_path>.")
   endif()
   
   message(STATUS "Found library: ${required_lib_path}")
@@ -107,6 +107,21 @@ foreach (lib ${other_libs})
   unset(required_lib_path CACHE)
 endforeach()
 
+###############################################################################
+# Doxyen Support
+## Search for Doxygen Package
+find_package(Doxygen)
+
+## In case has been found
+if(DOXYGEN_FOUND)
+  message(STATUS "Found Doxygen. It is available 'make doc' to generate the documentation")
+  configure_file(${CMAKE_SOURCE_DIR}/doc/doxygen/Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+  add_custom_target(doc
+  ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+  COMMENT "Generating API documentation with Doxygen" VERBATIM
+)
+endif(DOXYGEN_FOUND)
 ###############################################################################
 # Checks completed. Add sources/libraries/executables
 # Add sources subdirectory

@@ -72,6 +72,7 @@ public:
     /// \return If succeeded, id est the operator was registered
     bool unregisterMutationOperator ( const m_operator::IdType & );
 
+    /// \brief Get the pointer map of registered operators
     const MutationOperatorPtrMap &getRegisteredMutOperators();
 
     /// \brief Run the ChimeraTool

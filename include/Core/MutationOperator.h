@@ -1,7 +1,7 @@
 //===- MutationOperator.h ---------------------------------------*- C++ -*-===//
 //
 //  Copyright (C) 2015, 2016  Federico Iannucci (fed.iannucci@gmail.com)
-// 
+//
 //  This file is part of Clang-Chimera.
 //
 //  Clang-Chimera is free software: you can redistribute it and/or modify
@@ -20,7 +20,7 @@
 //===----------------------------------------------------------------------===//
 /// \file MutationOperator.h
 /// \author Federico Iannucci
-/// \date 14 ott 2015 
+/// \date 14 ott 2015
 /// \brief This file contains the class Mutation Operator
 //===----------------------------------------------------------------------===//
 
@@ -34,8 +34,10 @@
 #include <string>
 #include <vector>
 
-namespace chimera {
-namespace m_operator {
+namespace chimera
+{
+namespace m_operator
+{
 // Forward declarations
 class MutationOperator;
 
@@ -67,40 +69,49 @@ using MutatorPtrVector = ::std::vector<MutatorPtr>;
 ///
 ///           If an operator has all HOM mutators DOES NOT imply that is a HOM
 ///           operator, it is an imposed property.
-class MutationOperator {
+class MutationOperator
+{
 public:
-  // Ctor
-  MutationOperator(IdType id, std::string descr = "", bool isHOM = false);
+    // Ctor
+    MutationOperator ( IdType id, std::string descr = "", bool isHOM = false );
 
-  // Getter and Setter
-  const std::string &getDescription() const { return description; }
+    // Getter and Setter
+    const std::string &getDescription() const {
+        return description;
+    }
 
-  void setDescription(const std::string &description) {
-    this->description = description;
-  }
+    void setDescription ( const std::string &description ) {
+        this->description = description;
+    }
 
-  const IdType &getIdentifier() const { return identifier; }
+    const IdType &getIdentifier() const {
+        return identifier;
+    }
 
-  const MutatorPtrVector &getMutators() const { return mutators; }
+    const MutatorPtrVector &getMutators() const {
+        return mutators;
+    }
 
-  const bool isHom() const { return this->isHOM; }
+    const bool isHom() const {
+        return this->isHOM;
+    }
 
-  /**
-   * @brief Add a mutator to the operator
-   * @param mutator The mutator to add
-   */
-  void addMutator(MutatorPtr mutator) {
-    this->mutators.push_back(mutator);
-    // Check the mutator type
-    assert((!this->isHOM || mutator->isHom()) &&
-           "An HOM operator MUST have HOM mutators");
-  }
+    /**
+     * @brief Add a mutator to the operator
+     * @param mutator The mutator to add
+     */
+    void addMutator ( MutatorPtr mutator ) {
+        // Check the mutator type
+        assert ( ( !this->isHOM || mutator->isHom() ) &&
+                 "An HOM operator MUST have HOM mutators" );
+        this->mutators.push_back ( mutator );
+    }
 
 private:
-  const bool isHOM;
-  const IdType identifier;   ///< Identifier
-  std::string description;   ///< Description
-  MutatorPtrVector mutators; ///< Mutators of this operator
+    const bool isHOM;
+    const IdType identifier;   ///< Identifier
+    std::string description;   ///< Description
+    MutatorPtrVector mutators; ///< Mutators of this operator
 };
 } // End chimera::m_operator namespace
 } // End chimera namespace

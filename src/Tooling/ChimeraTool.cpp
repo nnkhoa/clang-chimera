@@ -1,7 +1,7 @@
 //===- ChimeraTool.cpp ------------------------------------------*- C++ -*-===//
 //
 //  Copyright (C) 2015, 2016  Federico Iannucci (fed.iannucci@gmail.com)
-// 
+//
 //  This file is part of Clang-Chimera.
 //
 //  Clang-Chimera is free software: you can redistribute it and/or modify
@@ -37,7 +37,6 @@
 #include <iostream>
 #include <string>
 #include <vector>
-//#include "../../include/Operators/FLAP/Operators.h"
 
 using namespace chimera;
 
@@ -190,12 +189,13 @@ int chimera::ChimeraTool::run(int argc, const char **argv) {
     ::clang::tooling::CommonOptionsParser helpOption(argc, help, catChimera,
                                                      overview);
   }
-  
+
   // Arguments that ends the execution
-  if (optIsOccured(optShowOperators.ArgStr, argc, argv)){
+  if (optIsOccured(optShowOperators.ArgStr, argc, argv)) {
     ::llvm::outs() << "Supported Operators:\n";
-    for (const auto& op : this->getRegisteredMutOperators()){
-      ::llvm::outs() << " * " << op.getValue()->getIdentifier() << "\n";
+    for (const auto &op : this->getRegisteredMutOperators()) {
+      ::llvm::outs() << " * " << op.getValue()->getIdentifier() << " : "
+                     << op.getValue()->getDescription() << "\n";
     }
     return 0;
   }
