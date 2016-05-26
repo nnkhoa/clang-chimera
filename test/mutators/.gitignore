@@ -1,0 +1,2 @@
+# Ignore the test_*_mutants.cpp
+test_*_mutants.cpp

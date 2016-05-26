@@ -1,47 +1,23 @@
-# Create library
-add_library(operators INTERFACE)
+# Create an interface library
+set(operators_lib "operators")
+add_library(${operators_lib} INTERFACE)
 
-# Groups of operators
-set(operator_dirs)
-set(operator_libs)
-## FLAP
-list(APPEND operator_dirs FLAP)
-list(APPEND operator_libs flap_operators)
-## Ward-Armstrong
-list(APPEND operator_dirs Ward-Armstrong)
-list(APPEND operator_libs ward_armstrong_operators)
+# List all directories, which should contain Mutation Operators and Mutators
+file(GLOB children ${CMAKE_CURRENT_SOURCE_DIR}/*)
+foreach(child ${children})
+  if(IS_DIRECTORY ${child})
+    message(STATUS "Mutation Operator directory: ${child}")
+    # Add the CMakeLists.txt inside the subdirectory
+    add_subdirectory(${child})
+  endif(IS_DIRECTORY ${child})
+endforeach(child)
 
-# Check mode
-list(LENGTH operator_dirs operator_dirs_total)
-math(EXPR operator_dirs_total ${operator_dirs_total}-1)
-foreach(index RANGE 0 ${operator_dirs_total})
-  list(GET operator_dirs ${index} operator_dir)
-  list(GET operator_libs ${index} operator_lib_name)
-  
-  if (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${operator_dir})
-    #message(STATUS "Directory ${operator_dir}: FOUND")
-    
-    # Devel mode: add subdirectory
-    add_subdirectory(${operator_dir})
-    set(operator_lib_name ${operator_lib_name})
-  else (EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${operator_dir})
-    #message(STATUS "Directory ${operator_dir}: NOT FOUND")
-    message(STATUS "Searching for library: ${operator_lib_name}")
-    
-    # Release mode: search for a pre-linked library
-    find_library(operator_lib ${operator_lib_name} PATHS ${CMAKE_SOURCE_DIR}/lib NO_DEFAULT_PATH)
-    
-    # Check if it has been found
-    if (${operator_lib} STREQUAL operator_lib-NOTFOUND)
-      message(FATAL_ERROR "${operator_lib_name} NOT FOUND in ${CMAKE_SOURCE_DIR}/lib")
-    endif(${operator_lib} STREQUAL operator_lib-NOTFOUND)
-    
-    set(operator_lib_name ${operator_lib})
-    unset(operator_lib CACHE)
-  endif(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/${operator_dir})
-  
-  message(STATUS "Adding library: ${operator_lib_name}")
-  target_link_libraries(operators INTERFACE
-                       ${operator_lib_name}
-                       )
-endforeach(index)
+# By default, load all operators library in ${CMAKE_SOURCE_DIR}/lib/operators
+file(GLOB libs ${CMAKE_SOURCE_DIR}/lib/operators/lib*.a)
+foreach(lib ${libs})
+  message(STATUS "Mutation Operator library: ${lib}")
+  # Link the library found
+  target_link_libraries(${operators_lib} INTERFACE
+                        ${lib}
+                        )
+endforeach(lib)

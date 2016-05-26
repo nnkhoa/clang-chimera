@@ -20,11 +20,14 @@
 //===----------------------------------------------------------------------===//
 /// \file main.cpp
 /// \author Federico Iannucci
-/// \brief Application main
+/// \brief Application main function
 //===----------------------------------------------------------------------===//
 
-#include "Operators/FLAP/Operators.h"
+#include "Operators/Operators.h"
 #include "Tooling/ChimeraTool.h"
+
+// For testing purpose
+#include "Testing/MutatorsTesting.h"
 
 int main(int argc, const char **argv) {
   // Create a Chimera Tool
@@ -40,8 +43,10 @@ int main(int argc, const char **argv) {
   //  chimeraTool.registerMutationOperator(::chimera::getLocalStuckData());
   //  chimeraTool.registerMutationOperator(::chimera::getGlobalStuckData());
 
-  chimeraTool.registerMutationOperator(::iideaa::getFLAPOperator());
-  chimeraTool.registerMutationOperator(::iideaa::getFLAPVivadoOperator());
+  //chimeraTool.registerMutationOperator(::iideaa::getFLAPOperator());
+  //chimeraTool.registerMutationOperator(::iideaa::getFLAPVivadoOperator());
+  
+  chimeraTool.registerMutationOperator(::chimera::examples::getROROperator());
 
   return chimeraTool.run(argc, argv);
 }

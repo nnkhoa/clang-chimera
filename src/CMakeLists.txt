@@ -11,9 +11,6 @@ add_subdirectory(Testing)
 add_subdirectory(Operators)
 
 add_library(utils
-#             Tooling/ChimeraTool.cpp
-#             Tooling/CompilationDatabaseUtils.cpp
-#             Tooling/FrontendActions.cpp
             Log.cpp
             Utils.cpp
             )

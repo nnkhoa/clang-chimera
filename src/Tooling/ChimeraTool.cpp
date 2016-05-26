@@ -122,7 +122,7 @@ enum PreprocessLevel {
 ::llvm::cl::opt<::std::string> optExecuteTest(
     "execute-test",
     ::llvm::cl::desc("Execute tests. This option disables the source input, "
-                     "only other options will be accepted."),
+                     "only other options will be accepted. The test directory should contains directories named as the identifier of the mutators to test."),
     ::llvm::cl::ValueRequired, ::llvm::cl::value_desc("test-dir"),
     ::llvm::cl::cat(catChimera), ::llvm::cl::init(""));
 
@@ -194,7 +194,7 @@ int chimera::ChimeraTool::run(int argc, const char **argv) {
   if (optIsOccured(optShowOperators.ArgStr, argc, argv)) {
     ::llvm::outs() << "Supported Operators:\n";
     for (const auto &op : this->getRegisteredMutOperators()) {
-      ::llvm::outs() << " * " << op.getValue()->getIdentifier() << " : "
+      ::llvm::outs() << " * " << op.getValue()->getIdentifier() << " - "
                      << op.getValue()->getDescription() << "\n";
     }
     return 0;
@@ -207,7 +207,9 @@ int chimera::ChimeraTool::run(int argc, const char **argv) {
     llvm::cl::ParseCommandLineOptions(argc, argv, overview);
     chimera::log::ChimeraLogger::info(
         "*** Chimera will now perform the tests [use -v for verbose]***");
-    return ::chimera::testing::runAllTest(argc, argv, optExecuteTest);
+    ::chimera::testing::TestingOptions o;
+    o.verbose = optVerbose;
+    return ::chimera::testing::runAllTest(argc, argv, optExecuteTest, o);
   }
   ///////////////////////////////////////////////////////////////////////////////
   // From now on the source input is required
@@ -253,7 +255,9 @@ int chimera::ChimeraTool::run(int argc, const char **argv) {
 
   // Execute test
   if (optExecuteTest != "") {
-    return chimera::testing::runAllTest(argc, argv, optExecuteTest);
+    ::chimera::testing::TestingOptions o;
+    o.verbose = optVerbose;
+    return chimera::testing::runAllTest(argc, argv, optExecuteTest, o);
   }
 
   // Init the verbose output

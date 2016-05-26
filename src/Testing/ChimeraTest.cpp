@@ -147,19 +147,18 @@ private:
 
 void chimera::testing::testMutatorMatch(chimera::mutator::Mutator *mutator) {
   ::chimera::mutator::Mutator &m = *mutator;
-  // Load N sources from .cpp file in mutators/<mutator_identifier>/test_N.cpp
+  // Load N sources from .cpp file in <mutator_identifier>/test_N.cpp
   unsigned int testNum = 0;
   int toolRetVal = -1;
   LOG_TEST_("Start Mutator Testing - " + m.getIdentifier());
-  std::string test_file_directory(testDirectory + "mutators" + pathSep +
-                                  m.getIdentifier() + pathSep);
+  std::string test_file_directory(testDirectory + m.getIdentifier() + pathSep);
   std::string test_file_path;
 
   do {
     test_file_path = test_file_directory + "test_" + to_string(testNum);
     // Check file existence
     if (::llvm::sys::fs::exists(test_file_path + ".cpp")) {
-      LOG_TEST_("Running on file - " + test_file_path);
+      LOG_TEST_("Running on file - " + test_file_path + ".cpp");
       // Exists at least one file, open it and load it into a string
       std::ifstream test_file(test_file_path + ".cpp");
       std::string test_file_source(static_cast<std::stringstream const &>(
@@ -257,6 +256,7 @@ void chimera::testing::testMutatorMatch(chimera::mutator::Mutator *mutator) {
       }
       // Increase file test number
       testNum++;
+      LOG_TEST_("For mutants check - " + test_file_path + "_mutants.cpp");
     } else
       testNum = 0;
     // testNum should be increased during the elaboration of test_0 so this

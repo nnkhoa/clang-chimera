@@ -20,7 +20,6 @@
 //===----------------------------------------------------------------------===//
 /// \file ChimeraTest.h
 /// \author Federico Iannucci
-/// \date 28 nov 2015
 /// \brief This file contains the testing utility functions based on
 ///        Google C++ Test Framework
 //===----------------------------------------------------------------------===//
@@ -53,14 +52,14 @@ struct TestingOptions {
 };
 /// \}
 
+// Helper Macro
 #define CHIMERA_MUTATOR_MATCH_TEST(mutator_class_name, mutator_identifier)     \
   TEST(mutator_identifier, mutator_test) {                                     \
     ::chimera::testing::testMutatorMatch<mutator_class_name>();                \
   }
 
 /// @brief Test a mutator
-/// @details  To test a mutator it should be tested the matching rules and the
-/// mutation rules.
+/// @details  To test a mutator, its matching rules and mutation rules should be tested
 ///           To run the test it must be created test_N.cpp files with from 0
 ///           onwards.
 ///           For each test_N.cpp a test_N.csv should be created to compare
