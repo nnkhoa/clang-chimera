@@ -27,6 +27,5 @@
 #define INCLUDE_OPERATORS_OPERATORS_H
 
 #include "Operators/Examples/Operators.h"
-#include "Operators/FLAP/Operators.h"
 
 #endif /* INCLUDE_OPERATORS_OPERATORS_H */

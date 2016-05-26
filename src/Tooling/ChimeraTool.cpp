@@ -143,19 +143,6 @@ bool optIsOccured(const ::std::string &optString, int argc, const char **argv) {
 }
 /// \}
 
-/// \{
-// Test
-// CHIMERA_MUTATOR_MATCH_TEST(::chimera::MutatorIfConditionTrueFalse,
-//                           mutator_if_condition_true_false);
-// CHIMERA_MUTATOR_MATCH_TEST(::chimera::MutatorMemberExprStuckData,
-//                           mutator_member_expr_stuck_data);
-// CHIMERA_MUTATOR_MATCH_TEST(::chimera::MutatorArrayRefStuckData,
-//                           mutator_array_ref_stuck_data);
-// CHIMERA_MUTATOR_MATCH_TEST(::chimera::MutatorIntegerRefStuckData,
-//                           mutator_int_ref_stuck_data);
-// CHIMERA_MUTATOR_MATCH_TEST(::iideaa::FLAPFloatOperationMutator, prova);
-/// \}
-
 bool chimera::ChimeraTool::registerMutationOperator(
     ::chimera::m_operator::MutationOperatorPtr op) {
   std::pair<typename MutationOperatorPtrMap::iterator, bool> retval =
