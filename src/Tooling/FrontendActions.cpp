@@ -153,28 +153,27 @@ int chimera::expandMacrosAction(llvm::raw_ostream& out,
 
 ::std::unique_ptr<clang::ASTConsumer> chimera::HTMLPrinterAction::CreateASTConsumer(
     ::clang::CompilerInstance& CI, ::llvm::StringRef sourcePath) {
-  return ::clang::CreateHTMLPrinter(&this->raw_out, CI.getPreprocessor());
+  return ::clang::CreateHTMLPrinter(std::move(this->raw_out), CI.getPreprocessor());
 }
 
-int chimera::htmlPrintAction(llvm::raw_ostream& out,
+int chimera::htmlPrintAction(::std::unique_ptr<llvm::raw_ostream> out,
                              const ::clang::tooling::CompileCommand& c,
                              const ::std::string& sourceFilePath) {
 // Create temp FrontendActionFactory class
   class SimpleFrontendActionFactory : public FrontendActionFactory {
    public:
-    SimpleFrontendActionFactory(llvm::raw_ostream& o)
-        : raw_out(o) {
+    SimpleFrontendActionFactory(::std::unique_ptr<llvm::raw_ostream> o): raw_out(std::move(o)){//qua ho fatto un cambio dicui non sono certo
     }
     clang::FrontendAction *create() override {
-      return new HTMLPrinterAction(this->raw_out);
+      return new HTMLPrinterAction(std::move(this->raw_out));
     }
    private:
-    llvm::raw_ostream& raw_out;
+    ::std::unique_ptr<llvm::raw_ostream> raw_out;
   };
 
 // Run the ClangTool with proper FrontendClass
   return (ClangTool(::chimera::cd_utils::FlexibleCompilationDatabase(c),
-                    sourceFilePath)).run(new SimpleFrontendActionFactory(out));
+                    sourceFilePath)).run(new SimpleFrontendActionFactory(std::move(out)));
 }
 
 ///////////////////////////////////////////////////////////////////////////////
