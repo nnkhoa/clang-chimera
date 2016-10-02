@@ -162,8 +162,7 @@ int chimera::htmlPrintAction(::std::unique_ptr<llvm::raw_ostream> out,
 // Create temp FrontendActionFactory class
   class SimpleFrontendActionFactory : public FrontendActionFactory {
    public:
-    SimpleFrontendActionFactory(::std::unique_ptr<llvm::raw_ostream> o): raw_out(std::move(o)){//qua ho fatto un cambio dicui non sono certo
-    }
+    SimpleFrontendActionFactory(::std::unique_ptr<llvm::raw_ostream> o): raw_out(std::move(o)){ }
     clang::FrontendAction *create() override {
       return new HTMLPrinterAction(std::move(this->raw_out));
     }
@@ -185,8 +184,8 @@ void chimera::reformatSourceCode(llvm::raw_ostream& out,
 
 // Apply reformat with LLVM style
   ::clang::tooling::Replacements rs = ::clang::format::reformat(
-      ::clang::format::getLLVMStyle(), code, rangeVector);
-  out << ::clang::tooling::applyAllReplacements(code, rs);
+    ::clang::format::getLLVMStyle(), code, rangeVector);
+  if(clang::tooling::applyAllReplacements(code, rs)) out <<  code;
 }
 
 void chimera::ReformatAction::EndSourceFileAction() {
