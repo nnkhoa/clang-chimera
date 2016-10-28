@@ -101,19 +101,18 @@ class HTMLPrinterAction : public clang::ASTFrontendAction {
  public:
   /// @brief Ctor
   /// @param o Output stream
-  // Qui abbiamo l'errore nel compiling conl a nuova llvm la funzione perché nel .cpp 
-  // questo viene passato a la funzione clang::createHTMLPrinter che ora non accetta piú raw_ostream ma std::unique_ptr 
-  HTMLPrinterAction(::std::unique_ptr<llvm::raw_ostream> o){  raw_out = std::move(o);}
+  HTMLPrinterAction(llvm::raw_ostream& o = llvm::outs()): raw_out(o) {
+  }
 
   ::std::unique_ptr<clang::ASTConsumer> CreateASTConsumer(clang::CompilerInstance&, llvm::StringRef);
  private:
-  ::std::unique_ptr<llvm::raw_ostream> raw_out;
+  llvm::raw_ostream& raw_out;
 };
 /// @brief Apply the HTMLPrinterAction to sourceFilePath
 /// @param Output stream
 /// @param The compile command for the source file
 /// @param sourceFilePath The path to the source file
-int htmlPrintAction(::std::unique_ptr<llvm::raw_ostream>,
+int htmlPrintAction(llvm::raw_ostream&,
                     const ::clang::tooling::CompileCommand&,
                     const std::string& sourceFilePath);
 ///////////////////////////////////////////////////////////////////////////////
