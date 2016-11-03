@@ -2,3 +2,8 @@ language: c++
 compiler: 
   - clang
   - g++
+
+script: 
+  - cmake --build
+
+install: true
