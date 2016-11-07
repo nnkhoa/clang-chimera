@@ -45,7 +45,20 @@ namespace perforation
  */
 class MutatorLoopPerforation : public chimera::mutator::Mutator
 {
-public:
+  //TODO ADD report functionality
+  struct MutationInfo {
+    ::std::string opId;  ///< Operation Identifier
+    unsigned line;  ///< Occurrence line
+    //::std::string opRetTy;  ///< Operation Return Type
+    //::clang::BinaryOperatorKind opTy;  ///< Operation Type
+    //::std::string op1;  ///< Operand 1
+    //::clang::BinaryOperatorKind op1OpTy;  ///< It is != NoOp if operand 1 is a binary operation
+    //::std::string op2;  ///< Operand 2
+    //::clang::BinaryOperatorKind op2OpTy;  ///< It is != NoOp if operand 2 is a binary operation
+    //::std::string retOp;  ///< Operand which eventually is returned
+  };
+
+  public:
     /**
      * @brief Constuctor
      */
@@ -61,17 +74,18 @@ public:
                                   clang::ast_type_traits::DynTypedNode & ) override; // This is pure virtual and must be implemented
     virtual clang::Rewriter &mutate ( const chimera::mutator::NodeType &node,
                                       mutator::MutatorType type,
-                                      clang::Rewriter &rw ) override; // mutation rules
-private: 
-    // Retrive the condition of forstmt
-    const ::clang::BinaryOperator *cond;
-    // Retrive the unary inc/dec of forstmt  
-    const ::clang::UnaryOperator *inc;
-    // Retrive 
-    const ::clang::BinaryOperator *binc;
-    const ::clang::BinaryOperator *bas;
+                                      clang::Rewriter &rw ) override; // mutation rulesi
 
-    unsigned int opId;
+    virtual void onCreatedMutant(const ::std::string &mutantPath) override;
+  private: 
+    const ::clang::BinaryOperator *cond; // < Retrive ForStmt condition  
+    const ::clang::UnaryOperator *inc; // < Retrive ForStmt increment  
+    const ::clang::BinaryOperator *binc; // < Retrive ForStmt increment in case of binary increment
+    const ::clang::BinaryOperator *bas; // < Retrive ForStmt increment in case of binary increment
+    
+    unsigned int opId; //< Counter to keep tracks of done mutations
+    
+  ::std::vector<MutationInfo> mutationsInfo;  ///< It maintains info about mutations, in order to be saved
 };
 
 /// \}

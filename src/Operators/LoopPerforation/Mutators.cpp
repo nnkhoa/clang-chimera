@@ -26,16 +26,19 @@
 #include "Log.h"
 #include "Operators/LoopPerforation/Mutators.h"
 #include "llvm/Support/ErrorHandling.h"
+#include "llvm/Support/Debug.h"
 #include <iostream>
+
+#define DEBUG_TYPE "mutator_iidea"
 
 using namespace clang;
 using namespace clang::ast_matchers;
 using namespace chimera::log;
 using namespace std;
 
-//TODO : Doxygen documentation
-
 ///////////////////////////////////////////////////////////////////////////////
+// Flap operation mutator
+
 #define XHS_INTERNAL_MATCHER(id)                                               \
   ignoringParenImpCasts(expr().bind(                                           \
       id)) //< x hand side matcher without parenthesis and implicit casts
@@ -48,7 +51,9 @@ using namespace std;
         anyOf(XHS_INTERNAL_MATCHER(id),                                        \
               ignoringParenImpCasts(                                           \
                   castExpr(has(expr(XHS_INTERNAL_MATCHER(id)))))))
-////////////////////////////////////////////////////////////////////////////////
+
+
+//TODO : Doxygen documentation
 
 
 /// \brief It is used to retrieve the node, it hides the binding string.
@@ -216,17 +221,173 @@ bool chimera::perforation::MutatorLoopPerforation::match(
         incReplacement = lhs + " = " + lhs + " - stride" + to_string(this->opId);
     }
   }
-  //TODO generare il report 
   // Apply Replacement
   rw.ReplaceText(fst->getInc()->getSourceRange(),incReplacement);
     
-    //// Qui dobbiamo effettuare il secondo tipo di LoopPerforation 
-    //// for(i=0;i<n;i++){body}
-    //// for(i=0;i<n;i++) if(i%stride !=0) {body}
-    ////
-    //rw.InsertTextAfter(fst->getLocStart(),"if( " + lhs + "\% stride" + to_string(this->opId) + " != 0){ ");
-    //rw.InsertTextBefore(fst->getLocEnd(), "}");
+  //TODO generare il report 
+  
+  // Store mutations info:
+  MutatorLoopPerforation::MutationInfo mutationInfo;
+  // * Operation Identifier
+  mutationInfo.opId = "stride" + to_string(opId);
+  // * Line location
+  FullSourceLoc loc(fst->getSourceRange().getBegin(), *(node.SourceManager));
+  mutationInfo.line = loc.getSpellingLineNumber();
+
+  //// * Return type
+  //std::transform(opRetType.begin(), opRetType.end(), opRetType.begin(),
+                 //toupper);
+  //mutationInfo.opRetTy = opRetType;
+  //// * Operation type
+  //mutationInfo.opTy = bop->getOpcode();
+  //// * Information about operands:
+  //// ** LHS
+  //::std::string oriLHS = oriRw.getRewrittenText(internalLhs->getSourceRange());
+  //::std::replace(oriLHS.begin(), oriLHS.end(), '\n', ' ');
+  //oriLHS.erase(remove_if(oriLHS.begin(), oriLHS.end(), ::isspace),
+               //oriLHS.end());
+  //mutationInfo.op1 = oriLHS;
+  //mutationInfo.op1OpTy = NoOp;
+  //if (isLhsBinaryOp) {
+    //mutationInfo.op1OpTy = ((const BinaryOperator *)internalLhs)->getOpcode();
+  //}
+  //// ** RHS
+  //::std::string oriRHS = oriRw.getRewrittenText(internalRhs->getSourceRange());
+  //::std::replace(oriRHS.begin(), oriRHS.end(), '\n', ' ');
+  //oriRHS.erase(remove_if(oriRHS.begin(), oriRHS.end(), ::isspace),
+               //oriRHS.end());
+  //mutationInfo.op2 = oriRHS;
+  //mutationInfo.op2OpTy = NoOp;
+  //if (isRhsBinaryOp) {
+    //mutationInfo.op2OpTy = ((const BinaryOperator *)internalRhs)->getOpcode();
+  //}
+  //// ** Return variable, if exists
+  //mutationInfo.retOp = retVar;
+
+  this->mutationsInfo.push_back(mutationInfo);
+
+  DEBUG(::llvm::dbgs() << rw.getRewrittenText(fst->getSourceRange()) << "\n");
+
+  
 
   // Return Rewriter and close functions
   return rw;
+}
+
+
+void ::chimera::perforation::MutatorLoopPerforation::onCreatedMutant(
+    const ::std::string &mDir) {
+  // Create a specific report inside the mutant directory
+  ::std::error_code error;
+  ::llvm::raw_fd_ostream report(mDir + "loop_report.csv", error,
+                                ::llvm::sys::fs::OpenFlags::F_Text);
+  // Resolve operand/operation information, substituting the binary operator
+  // with the code of the I type operation
+  // This operation, due to the unknown order of processing, has to be performed
+  // here
+  // Make a copy to always read the old operand string
+  ::std::vector<MutationInfo> cMutationsInfo = this->mutationsInfo;
+  //for (auto &mI : cMutationsInfo) {
+    //if (mI.op1OpTy != NoOp) {
+      //// Operand 1 is a binary operation
+      //// Search in all info
+      //for (const auto &mII : this->mutationsInfo) {
+        //// Check that isn't the same mutationInfo
+        //if (mII.opId != mI.opId) {
+          //// Search both operand inside mI.op1, if they are both found AND
+          //// the operation between them is mII.opTy there is a match.
+          //// Search from the end of op1 and begin of op2 the OpcodeStr of mII
+          //auto op1inOp = ::std::search(mI.op1.begin(), mI.op1.end(),
+                                       //mII.op1.begin(), mII.op1.end());
+          //auto op2inOp = ::std::search(mI.op1.begin(), mI.op1.end(),
+                                       //mII.op2.begin(), mII.op2.end());
+          //if (op1inOp != mI.op1.end() && op2inOp != mI.op1.end() &&
+              //::std::find(op1inOp + mII.op1.size() - 1, op2inOp,
+                          //BinaryOperator::getOpcodeStr(mII.opTy).data()[0]) !=
+                  //mI.op1.end()) {
+            //DEBUG(::llvm::dbgs() << "Operand/operation: " << mI.op1
+                                 //<< " IS Operation: " << mII.opId << "\n");
+            //mI.op1 = mII.opId; // found the new label
+            //break;
+          //}
+        //}
+      //}
+    //}
+    //if (mI.op2OpTy != NoOp) {
+      //// Operand 2 is a binary operation
+      //// Search in all info
+      //for (const auto &mII : this->mutationsInfo) {
+        //// Check that isn't the same mutationInfo
+        //if (mII.opId != mI.opId) {
+          //// Search both operand inside mI.op1, if they are both found AND
+          //// the operation between them is mII.opTy there is a match.
+          //// Search from the end of op1 and begin of op2 the OpcodeStr of mII
+          //auto op1inOp = ::std::search(mI.op2.begin(), mI.op2.end(),
+                                       //mII.op1.begin(), mII.op1.end());
+          //auto op2inOp = ::std::search(mI.op2.begin(), mI.op2.end(),
+                                       //mII.op2.begin(), mII.op2.end());
+          //if (op1inOp != mI.op2.end() && op2inOp != mI.op2.end() &&
+              //::std::find(op1inOp + mII.op1.size() - 1, op2inOp,
+                          //BinaryOperator::getOpcodeStr(mII.opTy).data()[0]) !=
+                  //mI.op1.end()) {
+            //DEBUG(::llvm::dbgs() << "Operand/operation: " << mI.op2
+                                 //<< " IS Operation: " << mII.opId << "\n");
+            //mI.op2 = mII.opId; // found the new label
+            //break;
+          //}
+        //}
+      //}
+    //}
+  //}
+
+  //// Now resolve the retVar, that is where an operation produce a retVar that is
+  //// used as input in a
+  //// following operation, the two are dependant. So the input var of the latter
+  //// operation can be substituted
+  //// with the operationId of the first.
+  //// The entries are ordered as location of occurrence, starting from the end it
+  //// is necessary to see if
+  //// an operand that is not a binary operation occurrs as retVar of previous
+  //// operation
+  //for (auto rIt = cMutationsInfo.rbegin(), rEnd = cMutationsInfo.rend();
+       //rIt != rEnd; ++rIt) {
+    //// Operand 1
+    //if (rIt->op1OpTy == NoOp) {
+      //auto &localOp = rIt->op1;
+      //// loop on the remaining operation
+      //for (auto rIt2 = rIt + 1; rIt2 != rEnd; rIt2++) {
+        //// Check if operand 1 is a retVar for anyone of them
+        //if (rIt2->retOp != "NULL" && localOp == rIt2->retOp) {
+          //DEBUG(::llvm::dbgs() << "Operand: " << localOp
+                               //<< " IS Operation: " << rIt2->opId << "\n");
+          //localOp = rIt2->opId; // new label
+          //break;
+        //}
+      //}
+    //}
+    //if (rIt->op2OpTy == NoOp) {
+      //// Operand 2
+      //auto &localOp = rIt->op2;
+      //// loop on the remaining operation
+      //for (auto rIt2 = rIt + 1; rIt2 != rEnd; rIt2++) {
+        //// Check if operand 1 is a retVar for anyone of them
+        //if (rIt2->retOp != "NULL" && localOp == rIt2->retOp) {
+          //DEBUG(::llvm::dbgs() << "Operand: " << localOp
+                               //<< " IS Operation: " << rIt2->opId << "\n");
+          //localOp = rIt2->opId; // new label
+          //break;
+        //}
+      //}
+    //}
+  //}
+
+  // for (const auto& mutationInfo : this->mutationsInfo) {
+  for (const auto &mutationInfo : cMutationsInfo){
+    report << mutationInfo.opId << "," << mutationInfo.line << "\n";
+    //<< mutationInfo.opRetTy << "," << mapOpCode(mutationInfo.opTy) << ","
+    //<< "\"" << mutationInfo.op1 << "\","
+    //<< "\"" << mutationInfo.op2 << "\","
+    //<< "\"" << mutationInfo.retOp << "\"\n";
+  }
+  report.close();
 }
