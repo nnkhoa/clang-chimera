@@ -23,7 +23,9 @@ endif(IWYU)
 # Require C++11 features
 set(CMAKE_CXX_STANDARD 11)
 set(CXX_STANDARD_REQUIRED ON)
-
+set(CMAKE_BUILD_TYPE Debug)
+SET(GCC_COVERAGE_COMPILE_FLAGS "-Wfatal-errors")
+SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
 # Required packages
 ## Require LLVM and Clang
 find_package(LLVM 3.7.0 REQUIRED CONFIG)

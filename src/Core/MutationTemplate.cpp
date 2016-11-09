@@ -47,6 +47,7 @@ using namespace chimera::log;
 
 static mutant::IdType mutantCounterInitial = 1;
 
+
 // FIXME: When a function name is not found -> LLVM IO ERROR.
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -665,10 +666,12 @@ int chimera::MutationTemplate::run(clang::ast_matchers::MatchFinder &finder) {
       // Run the ClangTool on a Finder FrontendAction
       // FIXME: Instead of using the ClantTool it coulbe be used directly the
       // CompilerInvocation.
+      
       retval = (ClangTool(::chimera::cd_utils::FlexibleCompilationDatabase(
                               this->compileCommand),
                           this->targetPath))
                    .run(newFrontendActionFactory(&finder).get());
+
       this->closeReportStream();
 
       // After-run tasks:
