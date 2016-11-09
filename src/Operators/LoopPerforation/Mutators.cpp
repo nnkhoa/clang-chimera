@@ -193,7 +193,7 @@ bool chimera::perforation::MutatorLoopPerforation::match(
  
   // Insert global variable
   this->opId++; 
-  rw.InsertTextBefore(funDecl->getSourceRange().getBegin(),"int stride" + to_string(this->opId) + ";\n");
+  rw.InsertTextBefore(funDecl->getSourceRange().getBegin(),"int stride" + to_string(this->opId) + " = 1;\n");
   // Retrive left operator from condition
   std::string lhs = rw.getRewrittenText(this->cond->getLHS()->getSourceRange());
 
