@@ -85,7 +85,8 @@ class MutatorLoopPerforation1 : public chimera::mutator::Mutator
     
     unsigned int opId; //< Counter to keep tracks of done mutations
     
-  ::std::vector<MutationInfo> mutationsInfo;  ///< It maintains info about mutations, in order to be saved
+    ::std::vector<MutationInfo> mutationsInfo;  ///< It maintains info about mutations, in order to be saved
+    void clean ();
 };
 
 /// \}

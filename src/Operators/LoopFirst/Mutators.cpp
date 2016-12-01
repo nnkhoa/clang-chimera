@@ -235,11 +235,16 @@ bool chimera::perforation::MutatorLoopPerforation1::match(
   this->mutationsInfo.push_back(mutationInfo);
 
   DEBUG(::llvm::dbgs() << rw.getRewrittenText(fst->getSourceRange()) << "\n");
-  
+  clean(); 
   // Return Rewriter and close functions
   return rw;
 }
 
+void ::chimera::perforation::MutatorLoopPerforation1::clean()
+{
+  this->cond = this->binc = this->bas = nullptr;
+  this->inc = nullptr;
+}
 
 void ::chimera::perforation::MutatorLoopPerforation1::onCreatedMutant(
     const ::std::string &mDir) {
