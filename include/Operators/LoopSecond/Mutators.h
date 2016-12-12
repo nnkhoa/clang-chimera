@@ -49,6 +49,7 @@ class MutatorLoopPerforation2 : public chimera::mutator::Mutator
   struct MutationInfo {
     ::std::string opId;  ///< Operation Identifier
     unsigned line;  ///< Occurrence line
+    ::std::string inc;
   };
 
   public:
@@ -74,7 +75,9 @@ class MutatorLoopPerforation2 : public chimera::mutator::Mutator
     const ::clang::BinaryOperator *cond; // < Retrive ForStmt condition  
     const ::clang::BinaryOperator *init; 
     unsigned int opId; //< Counter to keep tracks of done mutations
-    
+    const ::clang::UnaryOperator *inc; // < Retrive ForStmt increment  
+    const ::clang::BinaryOperator *binc; // < Retrive ForStmt increment in case of binary increment
+    const ::clang::BinaryOperator *bas; // < Retrive ForStmt increment in case of binary increment
   ::std::vector<MutationInfo> mutationsInfo;  ///< It maintains info about mutations, in order to be saved
 };
 

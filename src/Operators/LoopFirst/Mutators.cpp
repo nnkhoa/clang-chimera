@@ -171,7 +171,7 @@ bool chimera::perforation::MutatorLoopPerforation1::match(
     if(fst->getInc()->getLocStart() == this->inc->getLocStart() &&
        fst->getCond()->getLocStart() == this->cond->getLocStart())
       return true;
-  }else if(this->binc != nullptr && this->bas != nullptr &&this->cond != nullptr){
+  }else if(this->binc != nullptr && this->bas != nullptr && this->cond != nullptr){
     if(fst->getInc()->getLocStart() == this->bas->getLocStart() &&
        fst->getCond()->getLocStart() == this->cond->getLocStart())
       return true;
@@ -183,7 +183,8 @@ bool chimera::perforation::MutatorLoopPerforation1::match(
 ::clang::Rewriter &chimera::perforation::MutatorLoopPerforation1::mutate(
     const ::chimera::mutator::NodeType &node,
     ::chimera::mutator::MutatorType type, ::clang::Rewriter &rw) 
-{  
+{ 
+  bool inc = true; 
   // Local Rewriter to hold the original code
   Rewriter bkrw (*(node.SourceManager), node.Context->getLangOpts());
   // As first operation always retrieve the node
@@ -207,6 +208,7 @@ bool chimera::perforation::MutatorLoopPerforation1::match(
       break;
       case 2:
         incReplacement = lhs + " = " + lhs + " - stride" + to_string(this->opId);
+        inc = false;
       break;
       default :
         ChimeraLogger::verbose("OpCode sconosciuto: " + std::to_string(this->binc->getOpcode())); 
@@ -216,8 +218,10 @@ bool chimera::perforation::MutatorLoopPerforation1::match(
     if(this->inc){
       if(this->inc->isIncrementOp()) 
         incReplacement = lhs + " = " + lhs + " + stride" + to_string(this->opId);
-      else if(this->inc->isDecrementOp())
+      else if(this->inc->isDecrementOp()){ 
+        inc = false;
         incReplacement = lhs + " = " + lhs + " - stride" + to_string(this->opId);
+      }
     }
   }
   // Apply Replacement
@@ -231,6 +235,9 @@ bool chimera::perforation::MutatorLoopPerforation1::match(
   // * Line location
   FullSourceLoc loc(fst->getSourceRange().getBegin(), *(node.SourceManager));
   mutationInfo.line = loc.getSpellingLineNumber();
+  
+  if(inc) mutationInfo.inc = "U";
+  else    mutationInfo.inc = "D";
 
   this->mutationsInfo.push_back(mutationInfo);
 
@@ -260,7 +267,7 @@ void ::chimera::perforation::MutatorLoopPerforation1::onCreatedMutant(
   ::std::vector<MutationInfo> cMutationsInfo = this->mutationsInfo;
 
   for (const auto &mutationInfo : cMutationsInfo){
-    report << mutationInfo.opId << "," << mutationInfo.line << "\n";
+    report << mutationInfo.opId << "," << mutationInfo.line << "," << mutationInfo.inc << "\n";
   }
   report.close();
 }

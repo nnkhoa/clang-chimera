@@ -49,6 +49,7 @@ class MutatorLoopPerforation1 : public chimera::mutator::Mutator
   struct MutationInfo {
     ::std::string opId;  ///< Operation Identifier
     unsigned line;  ///< Occurrence line
+    ::std::string inc;  
     //::std::string opRetTy;  ///< Operation Return Type
     //::clang::BinaryOperatorKind opTy;  ///< Operation Type
     //::std::string op1;  ///< Operand 1

@@ -77,7 +77,6 @@ bool chimera::perforation::MutatorLoopPerforation2::getMatchedNode(
 ::clang::ast_matchers::StatementMatcher
 chimera::perforation::MutatorLoopPerforation2::getStatementMatcher()
 {
-// TODO match declstmt in forstmt
  return stmt(
             // First consider unsigned int decl
             // Match the condition statement (Es. i<n)
@@ -94,7 +93,17 @@ chimera::perforation::MutatorLoopPerforation2::getStatementMatcher()
 
             anyOf(binaryOperator(
                     hasParent(forStmt().bind("for"))).bind("binary_init"),
-                  anything())  
+                  anything()),
+  
+            // Match case of unary operand (Es. i++)
+            anyOf(unaryOperator(
+                    hasParent(forStmt().bind("for"))).bind("unary_op"),
+                  anything()),
+            // Match case of binary operand (Es. i= i+1)
+            anyOf(binaryOperator(
+                    hasParent(binaryOperator(
+                      hasParent(forStmt().bind("for"))).bind("binary_assign"))).bind("binary_op"),
+                  anything())           
         );
 
 }
@@ -107,27 +116,60 @@ bool chimera::perforation::MutatorLoopPerforation2::match(
 {
   // First operation: Retrieve the node
   const BinaryOperator *bcond = node.Nodes.getNodeAs<BinaryOperator>("binary_cond");
+  const UnaryOperator  *uop   = node.Nodes.getNodeAs<UnaryOperator>("unary_op");
   const BinaryOperator *binit = node.Nodes.getNodeAs<BinaryOperator>("binary_init");
+  const BinaryOperator *bop   = node.Nodes.getNodeAs<BinaryOperator>("binary_op");
+  const BinaryOperator *bas   = node.Nodes.getNodeAs<BinaryOperator>("binary_assign");
   const ForStmt        *fst   = node.Nodes.getNodeAs<ForStmt>("for");
-
+  // Retrive the binary operator 
+  if (uop != nullptr)
+    if(uop->getLocStart() == fst->getInc()->getLocStart()) 
+      this->inc = uop;
+  
+  // Retrive the binary condition
   if (bcond != nullptr){
     if(bcond->getLocStart() == fst->getCond()->getLocStart()){ this->cond = bcond;
-    }
+    }// If binary Operator corrispond to Initialization, retrive init. 
     if(bcond->getLocStart() == fst->getInit()->getLocStart()){ this->init = bcond; 
     }  
   }
-  
+
+  if (bcond != nullptr){
+    if(bcond->getLocStart() == fst->getCond()->getLocStart()) this->cond = bcond;
+    else
+      if(bcond->isCompoundAssignmentOp())
+        if(bcond->getLocStart() == fst->getInc()->getLocStart()){
+          this->binc = bcond;
+          this->bas  = bcond;
+        }
+  }
+ 
+  if (bas != nullptr && bop != nullptr)
+    if(bas->getLocStart() == fst->getInc()->getLocStart()){
+      this->binc = bop; 
+      this->bas  = bas;
+    }
+
+  // Retrive the binary condition  
   if (bcond != nullptr)
     if(bcond->getLocStart() == fst->getCond()->getLocStart()) this->cond = bcond;
 
+  // Retrive the binary initializzation
   if(binit != nullptr)
     if(binit->getLocStart() == fst->getInit()->getLocStart())
       this->init = binit;
   
   // Fine grain condition
   // Check if both operator are in same forStmt  
-  if (this->init != nullptr && this->cond != nullptr){
-    if(fst->getInit()->getLocStart() == this->init->getLocStart() &&
+  if (this->inc != nullptr && this->init != nullptr && this->cond != nullptr){
+    if(fst->getInc()->getLocStart()  == this->inc->getLocStart() &&
+       fst->getInit()->getLocStart() == this->init->getLocStart() &&
+       fst->getCond()->getLocStart() == this->cond->getLocStart())
+      return true;
+  }
+  if (this->binc != nullptr && this->bas != nullptr && this->init != nullptr && this->cond != nullptr){
+    if(fst->getInc()->getLocStart()  == this->bas->getLocStart() &&
+       fst->getInit()->getLocStart() == this->init->getLocStart() &&
        fst->getCond()->getLocStart() == this->cond->getLocStart())
       return true;
   }
@@ -135,10 +177,38 @@ bool chimera::perforation::MutatorLoopPerforation2::match(
   return false;
 }
 
+
+static int  mapOpCode(::clang::BinaryOperator::Opcode code) {
+  int  retString;
+  switch (code) {
+  case BO_Add:
+  case BO_AddAssign:
+    retString = 1;
+    break;
+  case BO_Sub:
+  case BO_SubAssign:
+    retString = 2;
+    break;
+  case BO_Mul:
+  case BO_MulAssign:
+    retString = 3;
+    break;
+  case BO_Div:
+  case BO_DivAssign:
+    retString = 4;
+    break;
+  default:
+    llvm_unreachable("OpCode unsupported");
+  }
+  return retString;
+}
+
+
 ::clang::Rewriter &chimera::perforation::MutatorLoopPerforation2::mutate(
     const ::chimera::mutator::NodeType &node,
     ::chimera::mutator::MutatorType type, ::clang::Rewriter &rw) 
-{  
+{   
+  bool inc = true; 
   // Local Rewriter to hold the original code
   Rewriter bkrw (*(node.SourceManager), node.Context->getLangOpts());
   // As first operation always retrieve the node
@@ -165,6 +235,14 @@ bool chimera::perforation::MutatorLoopPerforation2::match(
   // Insert replacement
   rw.InsertTextAfterToken(fst->getRParenLoc(),replacement);
   rw.InsertTextBefore(fst->getBody()->getLocEnd(),"}"); 
+  //check if is increasing or decreasing for
+  
+  if(this->binc){
+    int r =  mapOpCode(this->binc->getOpcode());  
+    if(r == 2) inc = false;
+  }else if(this->inc && this->inc->isDecrementOp())
+               inc = false;
+
   //////////////////////////////////////////////////////////////////////////////////////////////////
   // Store mutations info:
   MutatorLoopPerforation2::MutationInfo mutationInfo;
@@ -174,6 +252,10 @@ bool chimera::perforation::MutatorLoopPerforation2::match(
   FullSourceLoc loc(fst->getSourceRange().getBegin(), *(node.SourceManager));
   mutationInfo.line = loc.getSpellingLineNumber();
   // Insert in mutationInfo  
+  
+  if(inc) mutationInfo.inc = "U";
+  else    mutationInfo.inc = "D";
+ 
   this->mutationsInfo.push_back(mutationInfo);
 
   DEBUG(::llvm::dbgs() << rw.getRewrittenText(fst->getSourceRange()) << "\n");
@@ -198,7 +280,7 @@ void ::chimera::perforation::MutatorLoopPerforation2::onCreatedMutant(
   ::std::vector<MutationInfo> cMutationsInfo = this->mutationsInfo;
 
   for (const auto &mutationInfo : cMutationsInfo){
-    report << mutationInfo.opId << "," << mutationInfo.line << "\n";
+    report << mutationInfo.opId << "," << mutationInfo.line << "," << mutationInfo.inc <<"\n";
   }
   report.close();
 }
