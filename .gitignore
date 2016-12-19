@@ -1,4 +1,5 @@
 # Ignore build files.
 build/*
 build39/*
-
+lib/*
+lib/operator/*
