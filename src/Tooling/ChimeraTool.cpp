@@ -332,7 +332,7 @@ int chimera::ChimeraTool::run(int argc, const char **argv) {
         "-Qunused-arguments"); // suppress warnings on command line arguments
 
     // FIXME Some Bug, could not find stddef.h
-    command.CommandLine.push_back("-I/usr/lib/clang/3.7.0/include/");
+    command.CommandLine.push_back("-I/usr/lib/clang/3.9.1/include/");
 
     ///////////////////////////////////////////////////////////////////////////////
     // The command for the sourcePath is ready!
