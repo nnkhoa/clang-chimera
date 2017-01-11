@@ -29,4 +29,6 @@
 #include "Operators/Examples/Operators.h"
 #include "Operators/LoopFirst/Operator.h"
 #include "Operators/LoopSecond/Operator.h"
+#include "Operators/FLAP/Operator.h"
+
 #endif /* INCLUDE_OPERATORS_OPERATORS_H */

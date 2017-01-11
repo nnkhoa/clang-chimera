@@ -1,13 +1,9 @@
-# CMakeLists for Example Operators
-# Typically is necessary to change the target name (in this case 'example_operators') and
-# add the relative path to the created source codes.
-# Use this variable to change the target name
+# CMakeLists for Loop Operators
+# Change the target name
 set (target_name "LoopFirst")
 set (target_lib_name ${target_name})
 
 # Create a library target. 
-# This command allows to list source codes. Those codes will be compiled.
-# See the CMake add_library command for additional details.
 add_library(${target_name}
             Mutators.cpp
             Operators.cpp

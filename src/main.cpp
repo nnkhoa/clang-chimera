@@ -33,7 +33,7 @@ int main(int argc, const char **argv) {
   // Create a Chimera Tool
   ::chimera::ChimeraTool chimeraTool;
   
-  chimeraTool.registerMutationOperator(::chimera::examples::getROROperator());
+  chimeraTool.registerMutationOperator(::chimera::flapmutator::getFLAPOperator());
   chimeraTool.registerMutationOperator(::chimera::perforation::getPerforationFirstOperator());
   chimeraTool.registerMutationOperator(::chimera::perforation::getPerforationSecondOperator());
 
