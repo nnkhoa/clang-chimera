@@ -45,18 +45,11 @@ namespace perforation
  */
 class MutatorLoopPerforation1 : public chimera::mutator::Mutator
 {
-  //TODO ADD report functionality
   struct MutationInfo {
-    ::std::string opId;  ///< Operation Identifier
-    unsigned line;  ///< Occurrence line
-    ::std::string inc;  
-    //::std::string opRetTy;  ///< Operation Return Type
-    //::clang::BinaryOperatorKind opTy;  ///< Operation Type
-    //::std::string op1;  ///< Operand 1
-    //::clang::BinaryOperatorKind op1OpTy;  ///< It is != NoOp if operand 1 is a binary operation
-    //::std::string op2;  ///< Operand 2
-    //::clang::BinaryOperatorKind op2OpTy;  ///< It is != NoOp if operand 2 is a binary operation
-    //::std::string retOp;  ///< Operand which eventually is returned
+    ::std::string opId;  //!< Operation Identifier
+    unsigned line;       //!< Occurrence line
+    ::std::string inc;   //!< Increment or decrement for
+    int forLenght;       //!< Lenght of for
   };
 
   public:
@@ -83,7 +76,7 @@ class MutatorLoopPerforation1 : public chimera::mutator::Mutator
     const ::clang::UnaryOperator *inc; // < Retrive ForStmt increment  
     const ::clang::BinaryOperator *binc; // < Retrive ForStmt increment in case of binary increment
     const ::clang::BinaryOperator *bas; // < Retrive ForStmt increment in case of binary increment
-    
+    const ::clang::BinaryOperator *init; 
     unsigned int opId; //< Counter to keep tracks of done mutations
     
     ::std::vector<MutationInfo> mutationsInfo;  ///< It maintains info about mutations, in order to be saved
