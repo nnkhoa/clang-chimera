@@ -2,4 +2,4 @@
 build/*
 build39/*
 lib/*
-lib/operator/*
+lib/operators/*
