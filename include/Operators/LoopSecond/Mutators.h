@@ -50,6 +50,7 @@ class MutatorLoopPerforation2 : public chimera::mutator::Mutator
     ::std::string opId;  ///< Operation Identifier
     unsigned line;  ///< Occurrence line
     ::std::string inc;
+    int forLenght;       //!< Lenght of for
   };
 
   public:
