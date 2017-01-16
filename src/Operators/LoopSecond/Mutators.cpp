@@ -53,9 +53,6 @@ using namespace std;
                   castExpr(has(expr(XHS_INTERNAL_MATCHER(id)))))))
 
 
-//TODO : Doxygen documentation
-
-
 /// \brief It is used to retrieve the node, it hides the binding string.
 ///        In Mutator.h there is code template snippet that should be fine for
 ///        all the majority of the cases.
@@ -90,7 +87,7 @@ chimera::perforation::MutatorLoopPerforation2::getStatementMatcher()
                     hasParent(forStmt().bind("for")),
                     hasLHS(XHS_MATCHER("int", "lhs"))).bind("binary_cond"),
                   anything()),
-
+            // Match case of binary intialization (Es. i = 10)
             anyOf(binaryOperator(
                     hasParent(forStmt().bind("for"))).bind("binary_init"),
                   anything()),
@@ -121,6 +118,7 @@ bool chimera::perforation::MutatorLoopPerforation2::match(
   const BinaryOperator *bop   = node.Nodes.getNodeAs<BinaryOperator>("binary_op");
   const BinaryOperator *bas   = node.Nodes.getNodeAs<BinaryOperator>("binary_assign");
   const ForStmt        *fst   = node.Nodes.getNodeAs<ForStmt>("for");
+
   // Retrive the binary operator 
   if (uop != nullptr)
     if(uop->getLocStart() == fst->getInc()->getLocStart()) 
@@ -214,19 +212,21 @@ static int  mapOpCode(::clang::BinaryOperator::Opcode code) {
   // As first operation always retrieve the node
   const ForStmt *fst = node.Nodes.getNodeAs<ForStmt>("for");
   const FunctionDecl *funDecl = node.Nodes.getNodeAs<FunctionDecl>("functionDecl");
-  
+  const clang::ASTContext * ctx = node.Context;
   // Assert a precondition
   assert(fst      != nullptr && "getNodeAs returned a nullptr");
   assert(funDecl  != nullptr && "getNodeAs returned a nullptr");
   
   // Insert global variable
   this->opId++; 
+  
   rw.InsertTextBefore(funDecl->getSourceRange().getBegin(),"int stride" + to_string(this->opId) + " = 1;\n");
 
 
   std::string rhs = rw.getRewrittenText(this->init->getRHS()->getSourceRange());
 
-  rw.InsertTextBefore(fst->getSourceRange().getBegin(),"stride" + to_string(this->opId) + " = " + rhs + " ;\n");
+  rw.InsertTextBefore(fst->getSourceRange().getBegin(),
+                      "stride" + to_string(this->opId) + " = " + rhs + " ;\n");
 
   // Retrive left operator from condition
   std::string lhs = rw.getRewrittenText(this->cond->getLHS()->getSourceRange());
@@ -252,9 +252,46 @@ static int  mapOpCode(::clang::BinaryOperator::Opcode code) {
   FullSourceLoc loc(fst->getSourceRange().getBegin(), *(node.SourceManager));
   mutationInfo.line = loc.getSpellingLineNumber();
   // Insert in mutationInfo  
+
+  // Add a for Lenght Parameter  
+  //FIXME generalize it ... not only with defined value
   
-  if(inc) mutationInfo.inc = "U";
-  else    mutationInfo.inc = "D";
+  clang::Expr::EvalResult  initRHSEvalResult,condRHSEvalResult;
+  llvm::APSInt condRHSIval,initRHSIval;
+
+  // Retrive right operator from condition
+  clang::Expr* condRHS = this->cond->getRHS();
+  // Retrive right operator from initialization 
+  clang::Expr* initRHS = this->init->getRHS();
+  
+  if(initRHS->isEvaluatable(*(ctx)) && condRHS->isEvaluatable(*(ctx))){
+    if(initRHS->EvaluateAsInt(initRHSIval,*(ctx))){}
+    else if(initRHS->EvaluateAsRValue(initRHSEvalResult,*(ctx)))
+            initRHSIval = initRHSEvalResult.Val.getInt(); 
+    
+    if(condRHS->EvaluateAsInt(condRHSIval,*(ctx))){}
+    else if(condRHS->EvaluateAsRValue(condRHSEvalResult,*(ctx)))
+            condRHSIval = condRHSEvalResult.Val.getInt();
+   
+    if(inc){
+      mutationInfo.inc = "U";
+      mutationInfo.forLenght = condRHSIval.getExtValue() - initRHSIval.getExtValue(); 
+    }
+    else{
+      mutationInfo.inc = "D";
+       mutationInfo.forLenght = initRHSIval.getExtValue() - condRHSIval.getExtValue();
+    }
+  }else{
+    if(inc){
+      mutationInfo.inc = "U";
+      mutationInfo.forLenght = -9999;
+    }
+    else{
+      mutationInfo.inc = "D";
+      mutationInfo.forLenght = -9999;
+    }
+
+  }
  
   this->mutationsInfo.push_back(mutationInfo);
 
@@ -280,7 +317,10 @@ void ::chimera::perforation::MutatorLoopPerforation2::onCreatedMutant(
   ::std::vector<MutationInfo> cMutationsInfo = this->mutationsInfo;
 
   for (const auto &mutationInfo : cMutationsInfo){
-    report << mutationInfo.opId << "," << mutationInfo.line << "," << mutationInfo.inc <<"\n";
+    report << mutationInfo.opId << ","
+           << mutationInfo.line << ","
+           << mutationInfo.inc  << ","
+           << mutationInfo.forLenght << "\n";
   }
   report.close();
 }
