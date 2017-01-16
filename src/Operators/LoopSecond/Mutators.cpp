@@ -221,7 +221,7 @@ static int  mapOpCode(::clang::BinaryOperator::Opcode code) {
   
   // Insert global variable
   this->opId++; 
-  rw.InsertTextBefore(funDecl->getSourceRange().getBegin(),"int stride" + to_string(this->opId) + ";\n");
+  rw.InsertTextBefore(funDecl->getSourceRange().getBegin(),"int stride" + to_string(this->opId) + " = 1;\n");
 
 
   std::string rhs = rw.getRewrittenText(this->init->getRHS()->getSourceRange());
