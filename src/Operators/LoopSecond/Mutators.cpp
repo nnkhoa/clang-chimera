@@ -222,11 +222,8 @@ static int  mapOpCode(::clang::BinaryOperator::Opcode code) {
   
   rw.InsertTextBefore(funDecl->getSourceRange().getBegin(),"int stride" + to_string(this->opId) + " = 1;\n");
 
-
-  std::string rhs = rw.getRewrittenText(this->init->getRHS()->getSourceRange());
-
   rw.InsertTextBefore(fst->getSourceRange().getBegin(),
-                      "stride" + to_string(this->opId) + " = " + rhs + " ;\n");
+                      "stride" + to_string(this->opId) + " = 1;\n");
 
   // Retrive left operator from condition
   std::string lhs = rw.getRewrittenText(this->cond->getLHS()->getSourceRange());
@@ -234,7 +231,7 @@ static int  mapOpCode(::clang::BinaryOperator::Opcode code) {
   std::string replacement = "if ( " + lhs + " \% stride" + to_string(this->opId) + " != 0) {";
   // Insert replacement
   rw.InsertTextAfterToken(fst->getRParenLoc(),replacement);
-  rw.InsertTextBefore(fst->getBody()->getLocEnd(),"}"); 
+  rw.InsertTextAfterToken(fst->getBody()->getLocEnd(),";}"); 
   //check if is increasing or decreasing for
   
   if(this->binc){
