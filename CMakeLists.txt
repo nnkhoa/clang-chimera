@@ -28,8 +28,7 @@ set(CMAKE_BUILD_TYPE Debug)
 SET( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}" )
 # Required packages
 ## Require LLVM and Clang
-#find_package(LLVM 3.7.0 REQUIRED CONFIG)
-find_package(LLVM 3.9.1 REQUIRED CONFIG)
+find_package(LLVM 3.9.0 REQUIRED CONFIG)
 ## Require Pthreads
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
