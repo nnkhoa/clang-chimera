@@ -149,7 +149,7 @@ target_link_libraries(clang-chimera
                       z
                       ffi
                       edit
-                      tinfo
+                      ncurses
                       dl
                       m
                       )
