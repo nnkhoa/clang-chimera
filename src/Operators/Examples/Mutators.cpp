@@ -29,25 +29,6 @@
 using namespace clang;
 using namespace clang::ast_matchers;
 
-///////////////////////////////////////////////////////////////////////////////
-// Flap operation mutator
-
-#define XHS_INTERNAL_MATCHER(id)                                               \
-  ignoringParenImpCasts(expr().bind(                                           \
-      id)) //< x hand side matcher without parenthesis and implicit casts
-
-// Retrieve hs without implicit cast and parenthesis,
-// also bypassing explicit casting, this is done arriving to the explicit cast
-// and then going on the child (has), where the above rule is applied again
-#define XHS_MATCHER(type, id)                                                  \
-  allOf(hasType(qualType(hasCanonicalType(asString(type)))),                   \
-        anyOf(XHS_INTERNAL_MATCHER(id),                                        \
-              ignoringParenImpCasts(                                           \
-                  castExpr(has(expr(XHS_INTERNAL_MATCHER(id)))))))
-
-////////////////////////////////////////////////////////////////////////////////
-
-
 /// \brief It is used to retrieve the node, it hides the binding string.
 ///        In Mutator.h there is code template snippet that should be fine for
 ///        all the majority of the cases.
@@ -73,25 +54,10 @@ chimera::examples::MutatorGreaterOpReplacement::getStatementMatcher() {
   // to gather information about the surroundings, i.e. if the binary operation
   // is inside a for loop, this is done checking the ancestor. Such condition is
   // OPTIONAL, indeed it is used a little trick using anything.
-  return stmt(
-            binaryOperator(hasOperatorName("+"),
-                         hasLHS(XHS_MATCHER("int", "lhs")),
-                         hasRHS(XHS_MATCHER("int", "rhs")))
-            .bind("greater_op"),
-         anyOf(hasAncestor(
-                binaryOperator(hasOperatorName("=")).bind("externalAssignOp")),
-              anything()),
-
-         anyOf(
-          //  hasAncestor(forStmt().bind("forStmt")),
-            hasAncestor(whileStmt().bind("whileStmt")),
-            hasAncestor(doStmt().bind("doStmt")),
-            hasAncestor(ifStmt().bind("ifStmt")),
-        // Unless it is:
-        //  - Inside a function call
-        //  - Inside an arraySubscript
-        unless(
-            anyOf(hasAncestor(callExpr()), hasAncestor(arraySubscriptExpr())))));
+  return stmt(binaryOperator(hasOperatorName(">")).bind("greater_op"),
+              anyOf(hasAncestor(forStmt().bind("forStmt")),
+                    anything() // It must be as last
+                    ));
 }
 
 /// \brief This method implements the fine grained matching rules, indeed it is
@@ -142,7 +108,7 @@ bool chimera::examples::MutatorGreaterOpReplacement::match(
   std::string opReplacement = "";
   switch (type) {
   case 0: {
-    opReplacement = "-"; // First replacement
+    opReplacement = "<"; // First replacement
   } break;
   case 1: {
     opReplacement = "<="; // Second replacement
