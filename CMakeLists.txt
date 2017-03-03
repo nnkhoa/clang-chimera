@@ -158,3 +158,9 @@ target_link_libraries(clang-chimera
                       dl
                       m
                       )
+
+install(TARGETS clang-chimera
+        RUNTIME DESTINATION /usr/local/bin
+        LIBRARY DESTINATION /usr/local/lib
+        ARCHIVE DESTINATION /usr/local/lib 
+)
