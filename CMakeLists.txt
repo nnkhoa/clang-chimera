@@ -103,7 +103,7 @@ foreach (lib ${required_libs})
 endforeach()
 
 # - Others libraries
-list(APPEND other_libs ffi ncurses tinfo dl m)
+list(APPEND other_libs ffi edit ncurses dl m)
 message(STATUS "Checking additional libraries: ${other_libs}")
 foreach (lib ${other_libs})
   find_library(required_lib_path ${lib})
