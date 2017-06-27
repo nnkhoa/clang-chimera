@@ -34,6 +34,7 @@ int main(int argc, const char **argv) {
   ::chimera::ChimeraTool chimeraTool;
   
   chimeraTool.registerMutationOperator(::chimera::flapmutator::getFLAPOperator());
+  chimeraTool.registerMutationOperator(::chimera::vpamutator::getVPAOperator());
   chimeraTool.registerMutationOperator(::chimera::perforation::getPerforationFirstOperator());
   chimeraTool.registerMutationOperator(::chimera::perforation::getPerforationSecondOperator());
 

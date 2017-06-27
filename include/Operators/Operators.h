@@ -30,5 +30,6 @@
 #include "Operators/LoopFirst/Operator.h"
 #include "Operators/LoopSecond/Operator.h"
 #include "Operators/FLAP/Operator.h"
+#include "Operators/VPA/Operator.h"
 
 #endif /* INCLUDE_OPERATORS_OPERATORS_H */

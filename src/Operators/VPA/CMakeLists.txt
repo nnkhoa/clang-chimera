@@ -1,6 +1,6 @@
 # CMakeLists for VPA Operators
 # Change the target name
-set (target_name "VpaOperator")
+set (target_name "VPAOperator")
 set (target_lib_name ${target_name})
 
 # Create a library target. 
