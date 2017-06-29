@@ -94,7 +94,6 @@ static void castVpaFloat(Rewriter &rw, const Expr *xhs,
   SourceRange range = xhs->getSourceRange();
     rw.InsertTextBefore(range.getBegin(), "::vpa::VPA(");
     rw.InsertTextAfterToken(range.getEnd(), ", " + precId + ")");
-    
 }
 
 ::clang::ast_matchers::StatementMatcher
@@ -203,6 +202,7 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
     opRetType = "double";
     bop = node.Nodes.getNodeAs<BinaryOperator>("doubleOp");
   }
+    
   // bop = (const BinaryOperator*) bop->IgnoreCasts();
   const Expr *internalLhs = node.Nodes.getNodeAs<Expr>("lhs");
   const Expr *internalRhs = node.Nodes.getNodeAs<Expr>("rhs");
@@ -247,7 +247,7 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
   bool isLhsBinaryOp = ::llvm::isa<BinaryOperator>(internalLhs);
   bool isRhsBinaryOp = ::llvm::isa<BinaryOperator>(internalRhs);
   ::std::string retVar = "NULL";
-
+    
   // Manage CompoundAssign that are automatically of II type
   if (bop->isCompoundAssignmentOp()) {
     // Expand the compound assignment
@@ -272,19 +272,17 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
     default:
       llvm_unreachable("OpCode isn't supported");
     }
-      SourceRange rangeRH = rhs->getSourceRange();
-      rw.InsertTextBefore(rangeRH.getBegin(), " = (" + opRetType + ") (" +
-                                   castVpaFloat(lhsString, opId) +
-                                   " " + op_char + " ");
-      rw.InsertTextAfterToken(rangeRH.getEnd(), ")");
-      
-      const Expr *lhsTemp = bop->getLHS()->IgnoreCasts();
-      const Expr *rhsTemp = bop->getRHS()->IgnoreCasts();
-          
-    ::std::string lhsStringTemp = rw.getRewrittenText(lhsTemp->getSourceRange());
-    ::std::string rhsStringTemp = rw.getRewrittenText(rhsTemp->getSourceRange());
+    
+      //castVpaFloat(rw, rhs, opId);
+      std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
+            DEBUG(::llvm::dbgs() << "------> "<< prova << "\n");
+            rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")/*CMP*/)");
 
-    ::std::string bopReplacement = lhsStringTemp + " " + rhsStringTemp ;
+      rw.InsertTextAfter(rhs->getSourceRange().getBegin(), " /*CMP*/::vpa::VPA(");
+      
+      rw.ReplaceText(bop->getOperatorLoc(), "= ("+ opRetType +")("+castVpaFloat(lhsString, opId)+" "+op_char );//+ " /*CMP*/::vpa::VPA(");
+
+          
       /*
     if (isRhsBinaryOp) {
       bopReplacement += rhsString +")";
@@ -293,7 +291,7 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
     }*/
 
     // Apply replacement
-    rw.ReplaceText(bop->getSourceRange(), bopReplacement);
+    //rw.ReplaceText(bop->getSourceRange(), bopReplacement);
 
     // In this case the retVar is the LHS
     if (::llvm::isa<DeclRefExpr>(internalLhs)) {
@@ -310,20 +308,40 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
                                << "\n");
 
           // Apply replacements
-          castVpaFloat(rw, lhs, opId);
-          castVpaFloat(rw, rhs, opId);
+        //castVpaFloat(rw, lhs, opId);
+        rw.InsertTextAfter(lhs->getSourceRange().getBegin(), " /*I-III sx*/::vpa::VPA(");
+        rw.InsertTextBefore(bop->getOperatorLoc(), ", "+opId+") /*I-III sx*/");
+            
+            std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
+            DEBUG(::llvm::dbgs() << "------> "<< prova << "\n");
+            rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")/*I-III dx*/");
+            
+        rw.InsertTextAfter(rhs->getSourceRange().getBegin(), " /*I-III dx*/::vpa::VPA(");
+        
+            
+        //castVpaFloat(rw, rhs, opId);
         } else {
           // II level
           DEBUG(::llvm::dbgs() << "II type"
                                << "\n");
 
           // Apply replacements depending on the hand side types
-          if (!isLhsBinaryOp) {
-            castVpaFloat(rw, lhs, opId);
-          } else {
-            castVpaFloat(rw, rhs, opId);
-          }
+          //if (!isLhsBinaryOp) {
+            rw.InsertTextAfter(lhs->getSourceRange().getBegin(), " /*II sx*/::vpa::VPA(");
+            rw.InsertTextBefore(bop->getOperatorLoc(), ", "+opId+")/*II sx*/");
+            //castVpaFloat(rw, lhs, opId);
+          //} else {
+            
+            std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
+            DEBUG(::llvm::dbgs() << "------> "<< prova << "\n");
+            rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")/*II dx*/");        
+            
+            rw.InsertTextAfter(rhs->getSourceRange().getBegin(), " /*II dx*/::vpa::VPA(");
+            
+            
         }
+        //}
+  }
 
     // Get return variable name, if exists
     const BinaryOperator *assignOp =
@@ -332,6 +350,7 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
       // Some assign operation has been matched, narrow down to the really
       // interesting
       // The bop MUST be its RHS
+        DEBUG(::llvm::dbgs() << "it is an externalAssignOp");
       if (assignOp->getRHS()->IgnoreCasts()->IgnoreParenImpCasts() == bop) {
           const Expr *lhsAssign = assignOp->getLHS()->IgnoreCasts();
           const Expr *rhsAssign = assignOp->getRHS()->IgnoreCasts();
@@ -340,8 +359,8 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
           ::std::string rhsAssignString = rw.getRewrittenText(rhsAssign->getSourceRange());
           
             SourceRange rangeRH = rhsAssign->getSourceRange();
-            rw.InsertTextBefore(rangeRH.getBegin(), "(" + opRetType + ")");
-            rw.InsertTextAfterToken(rangeRH.getEnd(), "");
+            rw.InsertTextAfterToken(assignOp->getOperatorLoc(), "(" + opRetType + ")(");
+            rw.InsertTextAfterToken(assignOp->getLocEnd(), ")");
           
           //::std::string bopAssign = lhsAssignString + " = (" + opRetType + ") (" + rhsAssignString +")";
          // rw.ReplaceText(assignOp->getSourceRange(), bopAssign);
@@ -360,7 +379,7 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
         }
       }
     }
-  }
+  //}
 
   // Store mutations info:
   VPAFloatOperationMutator::MutationInfo mutationInfo;
