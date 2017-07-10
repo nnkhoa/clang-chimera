@@ -107,6 +107,12 @@ chimera::vpamutator::VPAFloatOperationMutator::getStatementMatcher() {
                 .bind("floatOp"),
             binaryOperator(hasLHS(XHS_MATCHER("double", "lhs")),
                            hasRHS(XHS_MATCHER("double", "rhs")))
+                .bind("doubleOp"),
+                binaryOperator(hasLHS(XHS_MATCHER("double", "lhs")),
+                               hasRHS(XHS_MATCHER("float", "rhs")))
+                .bind("doubleOp"),
+                binaryOperator(hasLHS(XHS_MATCHER("float", "lhs")),
+                               hasRHS(XHS_MATCHER("double", "rhs")))
                 .bind("doubleOp")),
       // The form anyOf(,anything()) allows to TRY a match with a matcher
       // anything() put as last allows to try each matcher without the need to
@@ -278,7 +284,6 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
     
       //castVpaFloat(rw, rhs, opId);
       std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
-            DEBUG(::llvm::dbgs() << "------> "<< prova << "\n");
             rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+"))");
 
       rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa::VPA(");
@@ -316,7 +321,6 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
         rw.InsertTextBefore(bop->getOperatorLoc(), ", "+opId+")");
             
             std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
-            DEBUG(::llvm::dbgs() << "------> "<< prova << "\n");
             rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")");
             
         rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa::VPA(");
@@ -336,7 +340,6 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
           //} else {
             
             std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
-            DEBUG(::llvm::dbgs() << "------> "<< prova << "\n");
             rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")");        
             
             rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa::VPA(");
