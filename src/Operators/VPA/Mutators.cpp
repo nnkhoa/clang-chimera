@@ -115,6 +115,9 @@ chimera::vpamutator::VPAFloatOperationMutator::getStatementMatcher() {
       anyOf(hasAncestor(
                 binaryOperator(hasOperatorName("=")).bind("externalAssignOp")),
             anything()),
+      anyOf(hasAncestor(
+                varDecl().bind("varDeclAssign")),
+            anything()),
       //          ignoringParenImpCasts(
       //              hasParent(
       //                  castExpr(
@@ -276,9 +279,9 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
       //castVpaFloat(rw, rhs, opId);
       std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
             DEBUG(::llvm::dbgs() << "------> "<< prova << "\n");
-            rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")/*CMP*/)");
+            rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+"))");
 
-      rw.InsertTextAfter(rhs->getSourceRange().getBegin(), " /*CMP*/::vpa::VPA(");
+      rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa::VPA(");
       
       rw.ReplaceText(bop->getOperatorLoc(), "= ("+ opRetType +")("+castVpaFloat(lhsString, opId)+" "+op_char );//+ " /*CMP*/::vpa::VPA(");
 
@@ -309,14 +312,14 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
 
           // Apply replacements
         //castVpaFloat(rw, lhs, opId);
-        rw.InsertTextAfter(lhs->getSourceRange().getBegin(), " /*I-III sx*/::vpa::VPA(");
-        rw.InsertTextBefore(bop->getOperatorLoc(), ", "+opId+") /*I-III sx*/");
+        rw.InsertTextAfter(lhs->getSourceRange().getBegin(), "::vpa::VPA(");
+        rw.InsertTextBefore(bop->getOperatorLoc(), ", "+opId+")");
             
             std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
             DEBUG(::llvm::dbgs() << "------> "<< prova << "\n");
-            rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")/*I-III dx*/");
+            rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")");
             
-        rw.InsertTextAfter(rhs->getSourceRange().getBegin(), " /*I-III dx*/::vpa::VPA(");
+        rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa::VPA(");
         
             
         //castVpaFloat(rw, rhs, opId);
@@ -327,22 +330,35 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
 
           // Apply replacements depending on the hand side types
           //if (!isLhsBinaryOp) {
-            rw.InsertTextAfter(lhs->getSourceRange().getBegin(), " /*II sx*/::vpa::VPA(");
-            rw.InsertTextBefore(bop->getOperatorLoc(), ", "+opId+")/*II sx*/");
+            rw.InsertTextAfter(lhs->getSourceRange().getBegin(), "::vpa::VPA(");
+            rw.InsertTextBefore(bop->getOperatorLoc(), ", "+opId+")");
             //castVpaFloat(rw, lhs, opId);
           //} else {
             
             std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
             DEBUG(::llvm::dbgs() << "------> "<< prova << "\n");
-            rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")/*II dx*/");        
+            rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")");        
             
-            rw.InsertTextAfter(rhs->getSourceRange().getBegin(), " /*II dx*/::vpa::VPA(");
-            
+            rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa::VPA(");
             
         }
         //}
   }
 
+    const VarDecl *varDecl =
+        node.Nodes.getNodeAs<VarDecl>("varDeclAssign");
+    if (varDecl != nullptr){
+        const Expr *varDeclExpr = varDecl->getAnyInitializer()->IgnoreImpCasts();
+        DEBUG(::llvm::dbgs() << "it is an varDeclAssign");
+    if (varDeclExpr == bop){
+        rw.InsertTextAfterToken(varDeclExpr->getSourceRange().getEnd(), ")");
+        rw.InsertTextBefore(varDeclExpr->getSourceRange().getBegin(), "("+ varDecl->getType().getAsString() +")(");
+        DEBUG(::llvm::dbgs() << "Var declaration expression: "
+                             << rw.getRewrittenText(varDecl->getSourceRange())
+                             << "\n");
+    }   
+    }
+    
     // Get return variable name, if exists
     const BinaryOperator *assignOp =
         node.Nodes.getNodeAs<BinaryOperator>("externalAssignOp");
