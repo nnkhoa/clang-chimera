@@ -353,6 +353,7 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
         const Expr *varDeclExpr = varDecl->getAnyInitializer()->IgnoreCasts();//->IgnoreImpCasts();
         DEBUG(::llvm::dbgs() << "it is an varDeclAssign\n");
     if (varDeclExpr == bop){
+        retVar = varDecl->getNameAsString();
         std::string currentStringVarDecl = rw.getRewrittenText(SourceRange(varDeclExpr->getSourceRange().getEnd()));
         rw.InsertTextAfter(varDeclExpr->getSourceRange().getEnd().getLocWithOffset(currentStringVarDecl.size()), ") ");
         rw.InsertTextBefore(varDeclExpr->getSourceRange().getBegin(), "("+ varDecl->getType().getAsString() +")(");
@@ -369,7 +370,7 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
       // Some assign operation has been matched, narrow down to the really
       // interesting
       // The bop MUST be its RHS
-        DEBUG(::llvm::dbgs() << "it is an externalAssignOp");
+        DEBUG(::llvm::dbgs() << "it is an externalAssignOp\n");
       if (assignOp->getRHS()->IgnoreCasts()->IgnoreParenImpCasts() == bop) {
           const Expr *lhsAssign = assignOp->getLHS()->IgnoreCasts();
           const Expr *rhsAssign = assignOp->getRHS()->IgnoreCasts();
