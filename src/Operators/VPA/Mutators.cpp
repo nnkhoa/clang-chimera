@@ -457,10 +457,15 @@ void chimera::vpamutator::VPAFloatOperationMutator::onCreatedMutant(
   // FIXME: Check also operation type -> store binaryOperator pointer to
   // compare?
   ::std::vector<MutationInfo> cMutationsInfo = this->mutationsInfo;
+      for (auto &mI : cMutationsInfo) {
+                      DEBUG(::llvm::dbgs() << "Id: " << mI.opId <<"; Op1: " << mI.op1 << ";\t\t Op2: " << mI.op2 << "\n");
+      }
+ int i = 0, j;
   for (auto &mI : cMutationsInfo) {
     if (mI.op1OpTy != NoOp) {
       // Operand 1 is a binary operation
       // Search in all info
+      j = 0;
       for (const auto &mII : this->mutationsInfo) {
         // Check that isn't the same mutationInfo
         if (mII.opId != mI.opId) {
@@ -474,18 +479,20 @@ void chimera::vpamutator::VPAFloatOperationMutator::onCreatedMutant(
           if (op1inOp != mI.op1.end() && op2inOp != mI.op1.end() &&
               ::std::find(op1inOp + mII.op1.size() - 1, op2inOp,
                           BinaryOperator::getOpcodeStr(mII.opTy).data()[0]) !=
-                  mI.op1.end()) {
-            DEBUG(::llvm::dbgs() << "Operand/operation: " << mI.op1
+                  mI.op1.end() && j > i) {
+            DEBUG(::llvm::dbgs() << mI.opId << " <--> " << mII.opId <<";\tOperand/operation: " << mI.op1
                                  << " IS Operation: " << mII.opId << "\n");
             mI.op1 = mII.opId; // found the new label
             break;
           }
         }
+       ++j;
       }
     }
     if (mI.op2OpTy != NoOp) {
       // Operand 2 is a binary operation
       // Search in all info
+        j = 0;
       for (const auto &mII : this->mutationsInfo) {
         // Check that isn't the same mutationInfo
         if (mII.opId != mI.opId) {
@@ -499,15 +506,17 @@ void chimera::vpamutator::VPAFloatOperationMutator::onCreatedMutant(
           if (op1inOp != mI.op2.end() && op2inOp != mI.op2.end() &&
               ::std::find(op1inOp + mII.op1.size() - 1, op2inOp,
                           BinaryOperator::getOpcodeStr(mII.opTy).data()[0]) !=
-                  mI.op1.end()) {
-            DEBUG(::llvm::dbgs() << "Operand/operation: " << mI.op2
+                  mI.op1.end() && j > i) {
+            DEBUG(::llvm::dbgs() << mI.opId << " <--> " << mII.opId <<";\tOperand/operation: " << mI.op2
                                  << " IS Operation: " << mII.opId << "\n");
             mI.op2 = mII.opId; // found the new label
             break;
           }
         }
+        ++j;
       }
     }
+   ++i;
   }
 
   // Now resolve the retVar, that is where an operation produce a retVar that is
