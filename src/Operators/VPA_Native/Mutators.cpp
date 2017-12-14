@@ -247,10 +247,13 @@ bool chimera::vpa_nmutator::VPANFloatOperationMutator::getMatchedNode(
   // Create a global var before the function
   if (opRetType == "float") {
     rw.InsertTextBefore(funDecl->getSourceRange().getBegin(),
-                        "::vpa_n::VPAPrecision " + opId + " = ::vpa_n::float_prec;\n");
+                        "::vpa_n::VPAPrecision " + opId + " = ::vpa_n::FLOAT;\n");
+  } else if (opRetType == "double") {
+    rw.InsertTextBefore(funDecl->getSourceRange().getBegin(),
+                        "::vpa_n::VPAPrecision " + opId + " = ::vpa_n::DOUBLE;\n");
   } else {
     rw.InsertTextBefore(funDecl->getSourceRange().getBegin(),
-                        "::vpa_n::VPAPrecision " + opId + " = ::vpa_n::double_prec;\n");
+                        "::vpa_n::VPAPrecision " + opId + " = ::vpa_n::LONG_DOUBLE;\n");
   }
 
   bool isLhsBinaryOp = ::llvm::isa<BinaryOperator>(internalLhs);
