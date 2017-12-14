@@ -450,7 +450,7 @@ void chimera::vpa_nmutator::VPANFloatOperationMutator::onCreatedMutant(
     const ::std::string &mDir) {
   // Create a specific report inside the mutant directory
   ::std::error_code error;
-  ::llvm::raw_fd_ostream report(mDir + "vpa_float_report.csv", error,
+  ::llvm::raw_fd_ostream report(mDir + "vpa_n_float_report.csv", error,
                                 ::llvm::sys::fs::OpenFlags::F_Text);
   // Resolve operand/operation information, substituting the binary operator
   // with the code of the I type operation
