@@ -317,18 +317,62 @@ bool chimera::vpa_nmutator::VPANFloatOperationMutator::getMatchedNode(
           // I or III type
           DEBUG(::llvm::dbgs() << "I or III type"
                                << "\n");
+          // #AGB start: get cast
+          const Expr *lhsCast = bop->getLHS();
+          const Expr *rhsCast = bop->getRHS();
+
+          const CastExpr *LCE = dyn_cast<CastExpr>(lhsCast);
+          const CastExpr *RCE = dyn_cast<CastExpr>(rhsCast);
+
+          if (LCE != nullptr){
+            DEBUG(::llvm::dbgs() << "Casting Detected\n"
+                                 << rw.getRewrittenText(lhsCast->getSourceRange())
+                                 << "\n"
+                                 << rw.getRewrittenText(rhsCast->getSourceRange())
+                                 << "\n");
+          }
+          // #AGB end
 
           // Apply replacements
         //castVpanFloat(rw, lhs, opId);
-        rw.InsertTextAfter(lhs->getSourceRange().getBegin(), "::vpa_n::VPA(");
-        rw.InsertTextBefore(bop->getOperatorLoc(), ", "+opId+")");
-            
-            std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
-            rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")");
-            
-        rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa_n::VPA(");
         
-            
+        // #AGB if has cast, replace the text from cast position, otherwise just insert it
+        if (LCE != nullptr){
+          rw.ReplaceText(lhsCast->getSourceRange().getBegin(), "::vpa_n::VPA((");
+        }else{  
+          rw.InsertTextAfter(lhs->getSourceRange().getBegin(), "::vpa_n::VPA(");
+        }
+
+        // #Original  
+        // rw.InsertTextAfter(lhs->getSourceRange().getBegin(), "::vpa_n::VPA(");
+
+        rw.InsertTextBefore(bop->getOperatorLoc(), ", "+opId+")");
+              
+              std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
+              rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")");
+          
+          // DEBUG(::llvm::dbgs() << "Prova String: \n"
+          //                      << prova
+          //                      << "\nRHS after Prova inserted:\n"
+          //                      << rw.getRewrittenText(rhs->getSourceRange())
+          //                      << "\n");
+          
+          // #AGB if LHS of BinOP has a cast, it must be considered that the 2 variables both are not float
+          // hence, for safety measure, add a cast to RHS within VPA
+          if (LCE != nullptr){
+            rw.ReplaceText(rhsCast->getSourceRange().getBegin(), "::vpa_n::VPA((" + opRetType + ")" + rhsString);
+          }else{
+            rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa_n::VPA(");
+          }
+          
+          // #Original
+          // rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa_n::VPA(");
+
+          DEBUG(::llvm::dbgs() << rw.getRewrittenText(lhs->getSourceRange())
+                               << "\n"
+                               << rw.getRewrittenText(rhs->getSourceRange())
+                               << "\n");
+              
         //castVpanFloat(rw, rhs, opId);
         } else {
           // II level
@@ -381,6 +425,11 @@ bool chimera::vpa_nmutator::VPANFloatOperationMutator::getMatchedNode(
           ::std::string lhsAssignString = rw.getRewrittenText(lhsAssign->getSourceRange());
           ::std::string rhsAssignString = rw.getRewrittenText(rhsAssign->getSourceRange());
           
+          DEBUG(::llvm::dbgs() << lhsAssignString
+                               << "\n"
+                               << rhsAssignString
+                               << "\n");
+
             SourceRange rangeRH = rhsAssign->getSourceRange();
             rw.InsertTextAfterToken(assignOp->getOperatorLoc(), "(" + opRetType + ")(");
             rw.InsertTextAfterToken(assignOp->getLocEnd(), ")");
