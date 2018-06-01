@@ -326,9 +326,15 @@ bool chimera::vpa_nmutator::VPANFloatOperationMutator::getMatchedNode(
 
           if (LCE != nullptr){
             DEBUG(::llvm::dbgs() << "Casting Detected\n"
-                                 << rw.getRewrittenText(lhsCast->getSourceRange())
+                                 << "LHS Cast Type: \n"
+                                 << LCE->getCastKindName()
                                  << "\n"
-                                 << rw.getRewrittenText(rhsCast->getSourceRange())
+                                 << "RHS Cast Type: \n"
+                                 << RCE->getCastKindName()
+                                 << "\n"
+                                 << rw.getRewrittenText(lhs->getSourceRange())
+                                 << "\n"
+                                 << rw.getRewrittenText(rhs->getSourceRange())
                                  << "\n");
           }
           // #AGB end
@@ -337,7 +343,10 @@ bool chimera::vpa_nmutator::VPANFloatOperationMutator::getMatchedNode(
         //castVpanFloat(rw, lhs, opId);
         
         // #AGB if has cast, replace the text from cast position, otherwise just insert it
-        if (LCE != nullptr){
+        // std::string LCECastKind = LCE->getCastKindName();
+
+        if ((LCE != nullptr) && (strcmp(LCE->getCastKindName(), "NoOp") == 0)){
+          DEBUG(::llvm::dbgs() << "NoOp cast \n");
           rw.ReplaceText(lhsCast->getSourceRange().getBegin(), "::vpa_n::VPA((");
         }else{  
           rw.InsertTextAfter(lhs->getSourceRange().getBegin(), "::vpa_n::VPA(");
