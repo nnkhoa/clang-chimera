@@ -325,6 +325,8 @@ bool chimera::vpa_nmutator::VPANFloatOperationMutator::getMatchedNode(
           const CastExpr *LCE = dyn_cast<CastExpr>(lhsCast);
           const CastExpr *RCE = dyn_cast<CastExpr>(rhsCast);
           
+          const char* rhsStmClass = rhs->getStmtClassName();
+
           if (LCE != nullptr){
             DEBUG(::llvm::dbgs() << "Casting Detected\n"
                                  << "LHS Cast Type: \n"
@@ -335,13 +337,19 @@ bool chimera::vpa_nmutator::VPANFloatOperationMutator::getMatchedNode(
                                  << rw.getRewrittenText(rhsCast->getSourceRange())
                                  << "\n");
           }
+
+          if (rhsStmClass != NULL){
+            DEBUG(::llvm::dbgs() << "Statement Class: "
+                                 << rhsStmClass
+                                 << "\n");
+          }
           // #AGB end
 
           // Apply replacements
         //castVpanFloat(rw, lhs, opId);
         
         // #AGB if has cast, replace the text from cast position, otherwise just insert it
-          
+
         if ((LCE != nullptr) && (strcmp(LCE->getCastKindName(), "NoOp") == 0)){
           DEBUG(::llvm::dbgs() << "NoOp cast \n");
           rw.ReplaceText(lhsCast->getSourceRange().getBegin(), "::vpa_n::VPA((");
@@ -363,8 +371,13 @@ bool chimera::vpa_nmutator::VPANFloatOperationMutator::getMatchedNode(
           //                      << rw.getRewrittenText(rhs->getSourceRange())
           //                      << "\n");
           
+          if(strcmp(rhsStmClass, "FloatingLiteral") == 0){
+            rw.InsertTextBefore(bop->getOperatorLoc(), ")");
+          }
+
           // #AGB if LHS of BinOP has a cast, it must be considered that the 2 variables both are not of cast type
           // hence, for safety measure, add a cast to RHS within VPA
+
           if ((LCE != nullptr) && (strcmp(LCE->getCastKindName(), "NoOp") == 0)){
             rw.ReplaceText(rhsCast->getSourceRange().getBegin(), "::vpa_n::VPA((" + opRetType + ")" + rhsString);
           }else{
