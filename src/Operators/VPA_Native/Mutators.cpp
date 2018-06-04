@@ -371,6 +371,11 @@ bool chimera::vpa_nmutator::VPANFloatOperationMutator::getMatchedNode(
           //                      << rw.getRewrittenText(rhs->getSourceRange())
           //                      << "\n");
           
+          // #AGB if there is a FloatingLiteral on the RHS of a BinOperator, it will return null when RHS get called
+          // Thus, cannot insert anything after that, resulting in missing parenthesis
+          // To work around this, a check is made, if RHS has FloatingLiteral Statement Class, a closing parenthesis is 
+          // inserted before the BinOperator
+
           if(strcmp(rhsStmClass, "FloatingLiteral") == 0){
             rw.InsertTextBefore(bop->getOperatorLoc(), ")");
           }
