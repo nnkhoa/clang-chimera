@@ -329,7 +329,7 @@ bool chimera::vpa_nmutator::VPANFloatOperationMutator::getMatchedNode(
 
           if (LCE != nullptr){
             DEBUG(::llvm::dbgs() << "Casting Detected\n"
-                                 << "LHS Cast Type: \n"
+                                 << "LHS Cast Type: "
                                  << LCE->getCastKindName()
                                  << "\n"
                                  << rw.getRewrittenText(lhsCast->getSourceRange())
@@ -371,21 +371,33 @@ bool chimera::vpa_nmutator::VPANFloatOperationMutator::getMatchedNode(
           //                      << rw.getRewrittenText(rhs->getSourceRange())
           //                      << "\n");
           
-          // #AGB if there is a FloatingLiteral on the RHS of a BinOperator, it will return null when RHS get called
+          // #AGB if there is a Literal of any kind (integer, float, etc.) and it's a Macro on the RHS of a BinOperator, 
+          // it will return an empty string when RHS get called
           // Thus, cannot insert anything after that, resulting in missing parenthesis
-          // To work around this, a check is made, if RHS has FloatingLiteral Statement Class, a closing parenthesis is 
+          // To work around this, a check is made, if RHS has Literal Statement Class and the return value is empty, 
+          // a closing parenthesis is 
           // inserted before the BinOperator
 
-          if(strcmp(rhsStmClass, "FloatingLiteral") == 0){
+          if((strstr(rhsStmClass, "Literal") != NULL) && (rhs->getLocStart().isMacroID() )) {
+            DEBUG(::llvm::dbgs() << "Macro Detected\n");            
             rw.InsertTextBefore(bop->getOperatorLoc(), ")");
           }
+
+          // DEBUG(::llvm::dbgs() << "Debug - Literal: \n"
+          //                      << "Rhs string's length: "
+          //                      << strlen(rhsStmClass)
+          //                      << "\n"
+          //                      << rw.getRewrittenText(lhs->getSourceRange())
+          //                      << "\n"
+          //                      << rw.getRewrittenText(rhsCast->getSourceRange())
+          //                      << "\n");
 
           // #AGB if LHS of BinOP has a cast, it must be considered that the 2 variables both are not of cast type
           // hence, for safety measure, add a cast to RHS within VPA
 
-          if ((LCE != nullptr) && (strcmp(LCE->getCastKindName(), "NoOp") == 0)){
+          if ((LCE != nullptr) && (strcmp(LCE->getCastKindName(), "NoOp") == 0)) {
             rw.ReplaceText(rhsCast->getSourceRange().getBegin(), "::vpa_n::VPA((" + opRetType + ")" + rhsString);
-          }else{
+          }else {
             rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa_n::VPA(");
           }
           
