@@ -315,15 +315,86 @@ bool chimera::vpamutator::VPAFloatOperationMutator::getMatchedNode(
           DEBUG(::llvm::dbgs() << "I or III type"
                                << "\n");
 
+          // #AGB start: get cast
+          
+          const Expr *lhsCast = bop->getLHS();
+          const Expr *rhsCast = bop->getRHS();
+
+          const CastExpr *LCE = dyn_cast<CastExpr>(lhsCast);
+          const CastExpr *RCE = dyn_cast<CastExpr>(rhsCast);
+          
+          const char* rhsStmClass = rhs->getStmtClassName();
+
+          if (LCE != nullptr){
+            DEBUG(::llvm::dbgs() << "Casting Detected\n"
+                                 << "LHS Cast Type: "
+                                 << LCE->getCastKindName()
+                                 << "\n"
+                                 << rw.getRewrittenText(lhsCast->getSourceRange())
+                                 << "\n"
+                                 << rw.getRewrittenText(rhsCast->getSourceRange())
+                                 << "\n");
+          }
+
+          if (rhsStmClass != NULL){
+            DEBUG(::llvm::dbgs() << "Statement Class: "
+                                 << rhsStmClass
+                                 << "\n");
+          }
+          // #AGB end
+
           // Apply replacements
         //castVpaFloat(rw, lhs, opId);
-        rw.InsertTextAfter(lhs->getSourceRange().getBegin(), "::vpa::VPA(");
+        
+        // #AGB if has cast, replace the text from cast position, otherwise just insert it
+
+        if ((LCE != nullptr) && (strcmp(LCE->getCastKindName(), "NoOp") == 0)){
+          DEBUG(::llvm::dbgs() << "NoOp cast \n");
+          rw.ReplaceText(lhsCast->getSourceRange().getBegin(), "::vpa::VPA((");
+        }else{  
+          rw.InsertTextAfter(lhs->getSourceRange().getBegin(), "::vpa::VPA(");
+        }
+
+        // #Original
+        // rw.InsertTextAfter(lhs->getSourceRange().getBegin(), "::vpa::VPA(");
+        
         rw.InsertTextBefore(bop->getOperatorLoc(), ", "+opId+")");
             
             std::string prova = rw.getRewrittenText(SourceRange(rhs->getSourceRange().getEnd()));
             rw.InsertTextBefore(rhs->getSourceRange().getEnd().getLocWithOffset(prova.size()), ", "+opId+")");
-            
-        rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa::VPA(");
+        
+        // #AGB if there is a Literal of any kind (integer, float, etc.) and it's a Macro on the RHS of a BinOperator, 
+          // it will return an empty string when RHS get called
+          // Thus, cannot insert anything after that, resulting in missing parenthesis
+          // To work around this, a check is made, if RHS has Literal Statement Class and the return value is empty, 
+          // a closing parenthesis is 
+          // inserted before the BinOperator
+
+          if((strstr(rhsStmClass, "Literal") != NULL) && (rhs->getLocStart().isMacroID() )) {
+            DEBUG(::llvm::dbgs() << "Macro Detected\n");            
+            rw.InsertTextAfter(bop->getOperatorLoc(), ")");
+          }
+
+          // DEBUG(::llvm::dbgs() << "Debug - Literal: \n"
+          //                      << "Rhs string's length: "
+          //                      << strlen(rhsStmClass)
+          //                      << "\n"
+          //                      << rw.getRewrittenText(lhs->getSourceRange())
+          //                      << "\n"
+          //                      << rw.getRewrittenText(rhsCast->getSourceRange())
+          //                      << "\n");
+
+          // #AGB if LHS of BinOP has a cast, it must be considered that the 2 variables both are not of cast type
+          // hence, for safety measure, add a cast to RHS within VPA
+
+          if ((LCE != nullptr) && (strcmp(LCE->getCastKindName(), "NoOp") == 0)) {
+            rw.ReplaceText(rhsCast->getSourceRange().getBegin(), "::vpa::VPA((" + opRetType + ")" + rhsString);
+          }else {
+            rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa::VPA(");
+          }    
+
+        // #Original    
+        // rw.InsertTextAfter(rhs->getSourceRange().getBegin(), "::vpa::VPA(");
         
             
         //castVpaFloat(rw, rhs, opId);
